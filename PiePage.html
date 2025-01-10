@@ -118,7 +118,7 @@
         <h1>Who Left Their PC Unlocked?</h1>
     </header>
     <div class="content">
-        <h2>Top List of Unlocked PCs</h2>
+        
         <ol class="top-list" id="top-list"></ol>
     </div>
     <footer>
@@ -144,7 +144,7 @@
             }, 8000);
         }
 
-        setInterval(createPie, 100);
+        setInterval(createPie, 200);
 
         function fetchTopList() {
             const params = new URLSearchParams(window.location.search);
