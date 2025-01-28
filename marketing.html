@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confetti Background</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: url('GPTW_2025_groot.png') no-repeat center center fixed;
+            background-size: cover;
+            overflow: hidden;
+        }
+        canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="confetti"></canvas>
+    <script>
+        const colors = ["#533BE2", "#36CCBA", "#E25314"];
+        const canvas = document.getElementById('confetti');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const confetti = [];
+        const confettiCount = 200;
+        const gravity = 0.5;
+        const terminalVelocity = 5;
+
+        class Confetto {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height - canvas.height;
+                this.size = Math.random() * 10 + 5;
+                this.color = colors[Math.floor(Math.random() * colors.length)];
+                this.velocityX = Math.random() * 2 - 1;
+                this.velocityY = Math.random() * 2 + 1;
+                this.rotation = Math.random() * Math.PI * 2;
+                this.rotationSpeed = Math.random() * 0.05;
+            }
+
+            update() {
+                this.y += Math.min(this.velocityY + gravity, terminalVelocity);
+                this.x += this.velocityX;
+                this.rotation += this.rotationSpeed;
+
+                if (this.y > canvas.height) this.y = -this.size;
+                if (this.x > canvas.width) this.x = -this.size;
+                if (this.x < -this.size) this.x = canvas.width + this.size;
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.rotation);
+                ctx.fillStyle = this.color;
+                ctx.fillRect(-this.size / 2, -this.size / 2, this.size, this.size);
+                ctx.restore();
+            }
+        }
+
+        for (let i = 0; i < confettiCount; i++) {
+            confetti.push(new Confetto());
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            confetti.forEach(confetto => {
+                confetto.update();
+                confetto.draw();
+            });
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+    </script>
+</body>
+</html>
