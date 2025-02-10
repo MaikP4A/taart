@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Top List of Unlocked PCs</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #fef2e4;
+            color: #5a3c29;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            zoom: 2;
+        }
+
+        header {
+            background-color: #f4c5a0;
+            padding: 10px;
+            border-bottom: 5px solid #d89b7f;
+            margin-bottom: 0;
+            position: relative;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            color: #fff;
+            text-shadow: 2px 2px 3px #8e553a;
+        }
+
+        .discount-img {
+            position: absolute;
+            top: 100px;
+            left: 10px;
+            width: 500px;
+            height: auto;
+        }
+
+        .content {
+            margin-left: 600px;
+            max-width: 600px;
+            padding: 0;
+            background: #fff;
+            border-radius: 15px;
+            box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .content h2 {
+            color: #8e553a;
+        }
+
+        .top-list {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .top-list li {
+            background: #f8e6d0;
+            border: 1px solid #d89b7f;
+            padding: 10px;
+            margin: 2px 0;
+            border-radius: 10px;
+            font-size: 1.2em;
+        }
+
+        .top-list li span {
+            font-weight: bold;
+        }
+
+        footer {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            background: #f4c5a0;
+            padding: 10px;
+            font-size: 0.9em;
+            color: #fff;
+        }
+
+        .pie {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background-size: contain;
+            background-repeat: no-repeat;
+            animation: fly 15s infinite, buzz 1s ease-in-out infinite;
+            transform-origin: center;
+        }
+
+        @keyframes fly {
+            from {
+                left: -100px;
+                top: calc(100vh * var(--start));
+            }
+            to {
+                left: calc(100vw + 100px);
+                top: calc(100vh * var(--end));
+            }
+        }
+
+        @keyframes buzz {
+            0%, 100% {
+                transform: translate(0, 0) scale(1);
+            }
+            25% {
+                transform: translate(-5px, 5px) scale(1.20);
+            }
+            50% {
+                transform: translate(5px, -5px) scale(1);
+            }
+            75% {
+                transform: translate(-5px, -5px) scale(0.80);
+            }
+        }
+
+        @media (min-height: 100vh) {
+            .pie {
+                top: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <img src="Discount.png" alt="Discount" class="discount-img">
+        <h1>Who Left Their PC Unlocked?</h1>
+    </header>
+    <div class="content">        
+        <ol class="top-list" id="top-list"></ol>
+    </div>
+    <footer>
+        Remember, lock your PC or the cake police will find you! 🎂
+    </footer>
+
+    <script>
+        const pieImages = ['https://wallpapers.com/images/hd/big-mac-close-up-5rkpe1pbc6gkrlh7-2.jpg','https://i.pinimg.com/originals/19/d7/28/19d7287c1614d4e40299c6c4e83316ce.png','https://cdn.pixabay.com/photo/2020/10/12/10/52/cake-5648455_960_720.png', 'https://png.pngtree.com/png-vector/20240830/ourmid/pngtree-birthday-cake-3d-png-image_13588834.png', 'https://images.freeimages.com/image/previews/a9b/birthday-celebration-cake-with-candles-png-5692571.png'];
+
+        function createPie() {
+            const pie = document.createElement('div');
+            pie.className = 'pie';
+            pie.style.setProperty('--start', Math.random());
+            pie.style.setProperty('--end', Math.random());
+            const randomPie = pieImages[Math.floor(Math.random() * pieImages.length)];
+            pie.style.backgroundImage = `url(${randomPie})`;
+            pie.style.left = '-100px';
+            pie.style.top = `calc(100vh * ${Math.random()})`;
+            document.body.appendChild(pie);
+
+            setTimeout(() => {
+                pie.remove();
+            }, 8000);
+        }
+
+        setInterval(createPie, 200);
+
+        function fetchTopList() {
+            const params = new URLSearchParams(window.location.search);
+            const topListData = params.get('toplist');
+
+            if (topListData) {
+                try {
+                    const topListArray = JSON.parse(decodeURIComponent(topListData));
+                    const topListElement = document.getElementById('top-list');
+                    topListArray.forEach((item, index) => {
+                        const listItem = document.createElement('li');
+                        listItem.innerHTML = `<span>${index + 1}. ${item}</span>`;
+                        topListElement.appendChild(listItem);
+                    });
+                } catch (error) {
+                    console.error('Error parsing toplist data:', error);
+                }
+            }
+        }
+
+        fetchTopList();
+    </script>
+</body>
+</html>
