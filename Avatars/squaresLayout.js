@@ -11,7 +11,7 @@ const colors = [
 async function showSquaresLayout() {    
     try {        
         // Fetch lunch choices from emails
-        const response = await fetch('http://10.14.1.42:7215/api/Gmail/mails');
+        const response = await fetch('https://10.14.1.42:7216/api/Gmail/mails');
         if (!response.ok) {
             throw new Error('Failed to fetch lunch data');
         }
