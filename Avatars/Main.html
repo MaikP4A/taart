@@ -197,9 +197,15 @@
             }
         }
 
+        function getApiBaseUrl() {
+            const params = new URLSearchParams(window.location.search);
+            return params.get('apiUrl') || 'https://localhost:7216';  // Default if not specified
+        }
+
         async function createAvatarsFromNames() {
             try {
-                const response = await fetch('https://10.14.1.42:7216/api/Gmail/present');
+                const baseUrl = getApiBaseUrl();
+                const response = await fetch(`${baseUrl}/api/Gmail/present`);
                 if (!response.ok) {
                     throw new Error('Failed to fetch names');
                 }

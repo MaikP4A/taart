@@ -8,10 +8,18 @@ const colors = [
     // Count avatars per lunch
     let lunchCounts = {};
 
-async function showSquaresLayout() {    
-    try {        
+function getApiBaseUrl() {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('apiUrl') || 'https://localhost:7216';  // Default if not specified
+}
+
+async function showSquaresLayout() {
+    console.log("IS THIS LOGGED?!");
+    try {
+        console.log("Do the actual good one?");
         // Fetch lunch choices from emails
-        const response = await fetch('https://10.14.1.42:7216/api/Gmail/mails');
+        const baseUrl = getApiBaseUrl();
+        const response = await fetch(`${baseUrl}/api/Gmail/mails`);
         if (!response.ok) {
             throw new Error('Failed to fetch lunch data');
         }
