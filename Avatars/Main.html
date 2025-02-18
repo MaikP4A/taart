@@ -5,6 +5,18 @@
     <title>Wandering Avatars Parade</title>
     <link rel="stylesheet" href="styles.css">
     <script src="https://alcdn.msauth.net/browser/2.0.0/js/msal-browser.min.js"></script>
+    <style>
+        body {
+            transform: scale(0.5);
+            transform-origin: top left;
+            background-color: white;
+            width: 200vw;  /* Double the viewport width to account for scaling */
+            height: 200vh; /* Double the viewport height to account for scaling */
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+    </style>
 </head>
 <body>
     <div class="chart-container" id="chartContainer">
