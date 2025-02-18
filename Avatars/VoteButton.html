@@ -40,7 +40,7 @@
         async function triggerVote() {
             try {
                 const baseUrl = new URLSearchParams(window.location.search).get('apiUrl') || '';
-                const response = await fetch(`${baseUrl}api/avatar/triggervote`, {
+                const response = await fetch(`${baseUrl}/api/avatar/triggervote`, {
                     method: 'POST'
                 });
                 
