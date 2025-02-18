@@ -1,193 +1,39 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html>
 <head>
+    <meta charset="UTF-8">
     <title>Wandering Avatars Parade</title>
     <link rel="stylesheet" href="styles.css">
     <script src="https://alcdn.msauth.net/browser/2.0.0/js/msal-browser.min.js"></script>
 </head>
 <body>
-    <button onclick="moveAvatarsToFirstPercentage()">Show Pie Chart</button>
-    <button onclick="showSquaresLayout()">Show Squares</button>
-    <button onclick="makeSurprised()">Make Surprised</button>
-    <button onclick="createAvatarsFromNames()">Refresh Avatars</button>
     <div class="chart-container" id="chartContainer">
         <svg id="voteChart" width="100%" height="100%"></svg>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="pieChart.js"></script>
     <script src="squaresLayout.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+
+    <div id="avatar-editor-container" style="position: fixed; bottom: 20px; right: 20px; text-align: center; background: white; padding: 10px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); z-index: 1000; cursor: pointer;" onclick="window.open(window.location.href.replace('Main.html', 'AvatarEditor.html'), '_blank')">
+        <div style="margin-bottom: 5px; font-family: Arial; font-size: 14px;">Kies avatar</div>
+        <div id="qrcode"></div>
+    </div>
+
+    <div id="vote-button-container" style="position: fixed; bottom: 20px; left: 20px; text-align: center; background: white; padding: 10px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); z-index: 1000; cursor: pointer;" onclick="showSquaresLayout()">
+        <div style="margin-bottom: 5px; font-family: Arial; font-size: 14px;">Vote!</div>
+        <div id="vote-qrcode"></div>
+    </div>
+
     <script>
-
-
-// A list with 30 lunches names
-        const lunches = ["BBB", "Carpaccio", "Kroket", "Pizza", "Pasta", "Salad", "Soup", "Sandwich", "Burger", "Soup", "NFC", "Pokebowl", "ChiliChicken", "Weekspecial", "Omelet", "Uitsmijter","Quinoa"];
-
-
-        function drawPieChart(svgElement, finalPercentages, colors) {
-            let startAngle = 0;// -Math.PI / 2;
-            let currentPercentages = finalPercentages.map(() => 0); // Start from 0
-            const totalSteps = 160; // Number of animation steps
-            let step = 0;
-            // Update the chart every 16ms
-            function updateChart() {
-                svgElement.innerHTML = ''; // Clear existing chart
-
-                // Draw Background Circle (Backplate)
-                const backplate = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-                backplate.setAttribute('cx', '200');
-                backplate.setAttribute('cy', '200');
-                backplate.setAttribute('r', '110');
-                backplate.setAttribute('fill', '#ddd'); // Light Grey Backplate
-                svgElement.appendChild(backplate);
-
-                let angleStart = startAngle;
-                currentPercentages.forEach((percentage, index) => {
-                    const angle = (percentage / 100) * 2 * Math.PI;
-                    const x1 = 200 + 100 * Math.sin(angleStart);
-                    const y1 = 200 - 100 * Math.cos(angleStart);
-                    const x2 = 200 + 100 * Math.sin(angleStart + angle);
-                    const y2 = 200 - 100 * Math.cos(angleStart + angle);
-                    const largeArcFlag = angle > Math.PI ? 1 : 0;
-
-                    const pathData = `M200,200 L${x1},${y1} A100,100 0 ${largeArcFlag},1 ${x2},${y2} Z`;
-                    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-                    path.setAttribute('d', pathData);
-                    path.setAttribute('fill', colors[index]);
-                    path.setAttribute('stroke', '#fff');
-                    path.setAttribute('stroke-width', '2');
-                    svgElement.appendChild(path);
-
-                    angleStart += angle;
-                });
-
-                step++;
-                if (step <= totalSteps) {
-                    currentPercentages = currentPercentages.map((p, i) => Math.min(finalPercentages[i], p + (finalPercentages[i] / totalSteps) * 2));
-                    requestAnimationFrame(updateChart);
-                }
-            }
-
-            requestAnimationFrame(updateChart);
-        }
-
-
         const avatars = [];
         const AVATAR_SIZE = 150;
         const FRAME_INTERVAL = 16;
         let lastFrameTime = 0;
-
-        // Modify `showPieChart` to animate pie growth
-        function showPieChart() {
-            const chart = document.getElementById('chartContainer');
-            const svgElement = document.getElementById('voteChart');
-
-            // Reset Pie Chart (Clear previous slices)
-            svgElement.innerHTML = '';
-
-            // Re-add Background Circle (Backplate)
-            const backplate = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-            backplate.setAttribute('cx', '200');
-            backplate.setAttribute('cy', '200');
-            backplate.setAttribute('r', '110');
-            backplate.setAttribute('fill', '#ddd'); // Light Grey Backplate
-            svgElement.appendChild(backplate);
-
-            // Show Chart
-            chart.style.opacity = '1';
-            chart.style.transition = 'transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)';
-            chart.style.transform = 'translate(-50%, -50%) scale(1)';
-
-            // Start Pie Chart Animation after 0.5s delay (smooth transition)
-            setTimeout(() => {
-                drawPieChart(svgElement, [40, 60], ['#FF6384', '#36A2EB']);
-            }, 500);
-
-            // Close Chart after 5 seconds
-            setTimeout(() => {
-                chart.style.transform = 'translate(-50%, -50%) scale(1.1)';
-                setTimeout(() => {
-                    chart.style.transition = 'transform 0.5s cubic-bezier(0, 1, 0, 1)';
-                    chart.style.transform = 'translate(-50%, -50%) scale(0)';
-                }, 300);
-            }, 5000);
-        }
-
-        function updateAvatarEyes(expression) {
-            avatars.forEach(avatar => {
-                const eyeImage = avatar.innerHTML.querySelector('head');
-                if (!eyeImage) {
-                    const img = document.createElement('img');
-                    img.className = 'eyes';
-                    img.style.position = 'absolute';
-                    img.style.top = '20px';
-                    img.style.left = '30px';
-                    img.style.width = '40px';
-                    avatar.element.appendChild(img);
-                }
-                eyeImage.src = `https://avataaars.io/?avatarStyle=Transparent&eyeType=${expression}`;
-            });
-        }
-
-        function moveAvatarsToFirstPercentage() {
-            //updateAvatarEyes('Surprised');
-            showPieChart();
-            setTimeout(() => {
-                const chartRect = document.querySelector('.chart-container').getBoundingClientRect();
-                const centerX = chartRect.left + chartRect.width / 2;
-                const centerY = chartRect.top + chartRect.height / 2;
-                const radius = chartRect.width / 4;
-                const startAngle = -Math.PI / 2;
-                const endAngle = startAngle + (40 / 100) * 2 * Math.PI;
-
-                avatars.forEach(avatar => {
-                    const angle = Math.random() * (endAngle - startAngle) + startAngle;
-                    const distance = Math.random() * radius * 0.9;
-                    const targetX = centerX + distance * Math.cos(angle);
-                    const targetY = centerY + distance * Math.sin(angle);
-
-                    const dx = targetX - avatar.x;
-                    const dy = targetY - avatar.y;
-                    const steps = 100;
-                    let step = 0;
-                    avatar.speedX = 0;
-                    avatar.speedY = 0;
-
-                    avatar.wandering = false;
-
-                    const interval = setInterval(() => {
-                        avatar.x += dx / steps;
-                        avatar.y += dy / steps;
-                        avatar.element.style.transform = `translate(${avatar.x}px, ${avatar.y}px)`;
-                        if (++step >= steps) {
-                            clearInterval(interval);
-                            setTimeout(() => {
-                                //updateAvatarEyes('Default');
-                                avatar.speedX = randomDirection();
-                                avatar.speedY = randomDirection();
-                                avatar.wandering = true;
-                            }, 3000);
-                        }
-                    }, 10);
-                });
-            }, 1000);
-        }
+        let ws;
 
         function randomDirection() {
             return (Math.random() - 0.5) * 4;
-        }
-
-
-        const avatarOptions = {
-            topType: ['ShortHairDreads01', 'ShortHairShaggyMullet', 'ShortHairShortFlat', 'ShortHairSides', 'ShortHairTheCaesar', 'LongHairBigHair', 'LongHairBob', 'LongHairBun', 'LongHairCurly','LongHairCurvy', 'LongHairNotTooLong'],
-            accessoriesType: ['Blank', 'Blank', 'Blank', 'Round'],
-            eyeType: ['Happy', 'Surprised', 'Wink'],
-            mouthType: ['Smile', 'Serious'],
-            skinColor: ['Light', 'Light', 'Light', 'Light', 'Light', 'Light', 'Light', 'Light', 'Light', 'Light', 'Light', 'Light', 'Light', 'Light', 'Tanned', 'Pale', 'Brown', 'DarkBrown']
-        };
-
-        function getRandomOption(category) {
-            return avatarOptions[category][Math.floor(Math.random() * avatarOptions[category].length)];
         }
 
         function changeDirection(avatar) {
@@ -197,73 +43,203 @@
             }
         }
 
-        function getApiBaseUrl() {
-            const params = new URLSearchParams(window.location.search);
-            return params.get('apiUrl') || 'https://localhost:7216';  // Default if not specified
+        const avatarOptions = {
+            topType: [
+                'NoHair', 'Eyepatch', 'Hat', 'Hijab', 'Turban', 'WinterHat1', 'WinterHat2', 'WinterHat3', 'WinterHat4',
+                'LongHairBigHair', 'LongHairBob', 'LongHairBun', 'LongHairCurly', 'LongHairCurvy', 'LongHairDreads',
+                'LongHairFrida', 'LongHairFro', 'LongHairFroBand', 'LongHairNotTooLong', 'LongHairShavedSides',
+                'LongHairMiaWallace', 'LongHairStraight', 'LongHairStraight2', 'LongHairStraightStrand',
+                'ShortHairDreads01', 'ShortHairDreads02', 'ShortHairFrizzle', 'ShortHairShaggyMullet', 'ShortHairShortCurly',
+                'ShortHairShortFlat', 'ShortHairShortRound', 'ShortHairShortWaved', 'ShortHairSides', 'ShortHairTheCaesar',
+                'ShortHairTheCaesarSidePart'
+            ],
+            accessoriesType: [
+                'Blank', 'Kurt', 'Prescription01', 'Prescription02', 'Round', 'Sunglasses', 'Wayfarers'
+            ],
+            hatColor: [
+                'Black', 'Blue01', 'Blue02', 'Blue03', 'Gray01', 'Gray02', 'Heather', 'PastelBlue', 'PastelGreen',
+                'PastelOrange', 'PastelRed', 'PastelYellow', 'Pink', 'Red', 'White'
+            ],
+            hairColor: [
+                'Auburn', 'Black', 'Blonde', 'BlondeGolden', 'Brown', 'BrownDark', 'PastelPink', 'Platinum',
+                'Red', 'SilverGray'
+            ],
+            facialHairType: [
+                'Blank', 'BeardMedium', 'BeardLight', 'BeardMajestic', 'MoustacheFancy', 'MoustacheMagnum'
+            ],
+            facialHairColor: [
+                'Auburn', 'Black', 'Blonde', 'BlondeGolden', 'Brown', 'BrownDark', 'Platinum', 'Red'
+            ],
+            clotheType: [
+                'BlazerShirt', 'BlazerSweater', 'CollarSweater', 'GraphicShirt', 'Hoodie', 'Overall',
+                'ShirtCrewNeck', 'ShirtScoopNeck', 'ShirtVNeck'
+            ],
+            clotheColor: [
+                'Black', 'Blue01', 'Blue02', 'Blue03', 'Gray01', 'Gray02', 'Heather', 'PastelBlue',
+                'PastelGreen', 'PastelOrange', 'PastelRed', 'PastelYellow', 'Pink', 'Red', 'White'
+            ],
+            graphicType: [
+                'Bat', 'Cumbia', 'Deer', 'Diamond', 'Hola', 'Pizza', 'Resist', 'Selena', 'Bear', 'SkullOutline',
+                'Skull'
+            ],
+            eyeType: [
+                'Close', 'Cry', 'Default', 'Dizzy', 'EyeRoll', 'Happy', 'Hearts', 'Side', 'Squint', 'Surprised',
+                'Wink', 'WinkWacky'
+            ],
+            eyebrowType: [
+                'Angry', 'AngryNatural', 'Default', 'DefaultNatural', 'FlatNatural', 'RaisedExcited',
+                'RaisedExcitedNatural', 'SadConcerned', 'SadConcernedNatural', 'UnibrowNatural', 'UpDown',
+                'UpDownNatural'
+            ],
+            mouthType: [
+                'Concerned', 'Default', 'Disbelief', 'Eating', 'Grimace', 'Sad', 'ScreamOpen', 'Serious',
+                'Smile', 'Tongue', 'Twinkle', 'Vomit'
+            ],
+            skinColor: [
+                'Tanned', 'Yellow', 'Pale', 'Light', 'Brown', 'DarkBrown', 'Black'
+            ]
+        };
+
+        function getRandomOption(category) {
+            return avatarOptions[category][Math.floor(Math.random() * avatarOptions[category].length)];
         }
 
-        async function createAvatarsFromNames() {
+        function getApiBaseUrl() {
+            const params = new URLSearchParams(window.location.search);
+            return params.get('apiUrl') || "";  // Default if not specified
+        }
+
+        function connectWebSocket() {
+            try {
+                // Get the base URL and convert http(s) to ws(s)
+                const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+                const baseUrl = getApiBaseUrl();
+                const wsUrl = baseUrl ? 
+                    `${protocol}//${new URL(baseUrl).host}/ws` : 
+                    `${protocol}//${window.location.host}/ws`;
+                
+                console.log('Connecting to WebSocket at:', wsUrl);
+                
+                ws = new WebSocket(wsUrl);
+                
+                ws.onopen = () => {
+                    console.log('WebSocket connected successfully');
+                    // Start periodic refresh when WebSocket connects
+                    startPeriodicRefresh();
+                };
+                
+                ws.onmessage = (event) => {
+                    console.log('WebSocket message received:', event.data);
+                    if (event.data === 'avatar_updated') {
+                        console.log('Avatar update received, reloading avatars...');
+                        loadAvatars();
+                    } else if (event.data === 'trigger_vote') {
+                        console.log('Vote trigger received, showing squares layout...');
+                        showSquaresLayout();
+                    }
+                };
+                
+                ws.onclose = (event) => {
+                    console.log('WebSocket disconnected. Code:', event.code, 'Reason:', event.reason);
+                    setTimeout(connectWebSocket, 5000); // Reconnect after 5 seconds
+                };
+                
+                ws.onerror = (error) => {
+                    console.error('WebSocket error:', error);
+                };
+            } catch (error) {
+                console.error('Error setting up WebSocket:', error);
+                setTimeout(connectWebSocket, 5000);
+            }
+        }
+
+        // Add new function for periodic refresh
+        function startPeriodicRefresh() {
+            // Refresh every 5 minutes (300000 milliseconds)
+            setInterval(() => {
+                console.log('Performing periodic avatar refresh');
+                loadAvatars();
+            }, 300000);
+        }
+
+        async function loadAvatars() {
             try {
                 const baseUrl = getApiBaseUrl();
-                const response = await fetch(`${baseUrl}/api/Gmail/present`);
+                const response = await fetch(`${baseUrl}api/avatar/present`);
                 if (!response.ok) {
-                    throw new Error('Failed to fetch names');
+                    throw new Error('Failed to fetch avatars');
                 }
-                const names = await response.json();
+                const avatarData = await response.json();
                 
-                // Clear existing avatars if any
-                avatars.forEach(avatar => avatar.element.remove());
-                avatars.length = 0;
-
-                // Create an avatar for each name
-                names.forEach(name => {
-                    const avatar = document.createElement('div');
-                    avatar.className = 'avatar';
-                    
-                    // Generate consistent avatar features based on name
-                    const hash = name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-                    const getOption = (options, seed) => options[Math.abs(hash + seed) % options.length];
-                    
-                    avatar.innerHTML = `
-                        <div class="name-label" style="position:absolute; top:-70px; width:100px; text-align:center; font-family: Arial; font-size: 14px; color: #333; white-space: nowrap;">
-                            ${name.split(' ')[0]}
-                        </div>
-                        <img class="head" src="https://avataaars.io/?avatarStyle=Transparent&topType=${getOption(avatarOptions.topType, 1)}&accessoriesType=${getOption(avatarOptions.accessoriesType, 2)}&eyeType=${getOption(avatarOptions.eyeType, 3)}&mouthType=${getOption(avatarOptions.mouthType, 4)}&skinColor=${getOption(avatarOptions.skinColor, 5)}" style="position:absolute; top:-42px; left:0px; width:100px; clip-path: inset(0% 0% 28% 0%);">
-                        <img src="kenny/Player/Limbs/body_front.png" style="position:absolute; top:30px; left:15px; width:60px; z-index:1; ">
-                        <div class="left-arm-wrapper" style="position:absolute; top:31px; left:10px; width:24px;">
-                            <img class="arm left-arm" src="kenny/Player/Limbs/arm.png" style="width:100%; transform-origin: top center;">
-                        </div>
-                        <div class="right-arm-wrapper" style="position:absolute; top:31px; left:60px; width:24px;">
-                            <img class="arm right-arm" src="kenny/Player/Limbs/arm.png" style="width:100%; transform-origin: top center; transform: scaleX(-1);">
-                        </div>
-                        <div class="left-leg-wrapper" style="position:absolute; top:75px; left:22px; width:28px;">
-                            <img class="leg left-leg" src="kenny/Player/Limbs/leg.png" style="width:100%; transform-origin: top center;">
-                        </div>
-                        <div class="right-leg-wrapper" style="position:absolute; top:75px; left:54px; width:28px;">
-                            <img class="leg right-leg" src="kenny/Player/Limbs/leg.png" style="width:100%; transform-origin: top center;">
-                        </div>`;
-
-                    document.body.appendChild(avatar);
-                    
-                    const avatarObj = {
-                        element: avatar,
-                        x: Math.random() * (window.innerWidth - AVATAR_SIZE),
-                        y: Math.random() * (window.innerHeight - AVATAR_SIZE),
-                        speedX: randomDirection(),
-                        speedY: randomDirection(),
-                        wandering: true,
-                        wanderArea: {
-                            x: 0,
-                            y: 0,
-                            width: window.innerWidth - AVATAR_SIZE,
-                            height: window.innerHeight - AVATAR_SIZE
-                        },
-                        name: name
-                    };
-                    
-                    avatars.push(avatarObj);
-                    setInterval(() => changeDirection(avatarObj), Math.random() * 5000 + 2000);
+                // Keep track of existing avatars by name
+                const existingAvatarsByName = new Map(
+                    avatars.map(avatar => [avatar.name, avatar])
+                );
+                
+                // Remove avatars that are no longer present
+                avatars.forEach((avatar, index) => {
+                    if (!avatarData.find(data => data.name === avatar.name)) {
+                        avatar.element.remove();
+                        avatars.splice(index, 1);
+                    }
                 });
+
+                // Update or create avatars
+                avatarData.forEach(data => {
+                    const existingAvatar = existingAvatarsByName.get(data.name);
+                    
+                    if (existingAvatar) {
+                        // Update existing avatar's appearance only
+                        const head = existingAvatar.element.querySelector('.head');
+                        head.src = `https://avataaars.io/?avatarStyle=Transparent&topType=${data.options.topType}&accessoriesType=${data.options.accessoriesType}&hatColor=${data.options.hatColor || 'Black'}&hairColor=${data.options.hairColor || 'BrownDark'}&facialHairType=${data.options.facialHairType || 'Blank'}&facialHairColor=${data.options.facialHairColor || 'Brown'}&clotheType=${data.options.clotheType || 'BlazerShirt'}&clotheColor=${data.options.clotheColor || 'Black'}&graphicType=${data.options.graphicType || 'Diamond'}&eyeType=${data.options.eyeType || 'Default'}&eyebrowType=${data.options.eyebrowType || 'Default'}&mouthType=${data.options.mouthType || 'Default'}&skinColor=${data.options.skinColor || 'Light'}`;
+                    } else {
+                        // Create new avatar
+                        const avatar = document.createElement('div');
+                        avatar.className = 'avatar';
+                        
+                        avatar.innerHTML = `
+                            <div class="name-label" style="position:absolute; top:-70px; width:100px; text-align:center; font-family: Arial; font-size: 14px; color: #333; white-space: nowrap;">
+                                ${data.name.split(' ')[0]}
+                            </div>
+                            <img class="head" src="https://avataaars.io/?avatarStyle=Transparent&topType=${data.options.topType}&accessoriesType=${data.options.accessoriesType}&hatColor=${data.options.hatColor || 'Black'}&hairColor=${data.options.hairColor || 'BrownDark'}&facialHairType=${data.options.facialHairType || 'Blank'}&facialHairColor=${data.options.facialHairColor || 'Brown'}&clotheType=${data.options.clotheType || 'BlazerShirt'}&clotheColor=${data.options.clotheColor || 'Black'}&graphicType=${data.options.graphicType || 'Diamond'}&eyeType=${data.options.eyeType || 'Default'}&eyebrowType=${data.options.eyebrowType || 'Default'}&mouthType=${data.options.mouthType || 'Default'}&skinColor=${data.options.skinColor || 'Light'}" style="position:absolute; top:-42px; left:0px; width:100px; clip-path: inset(0% 0% 28% 0%);">
+                            <img src="kenny/Player/Limbs/body_front.png" style="position:absolute; top:30px; left:15px; width:60px; z-index:1; ">
+                            <div class="left-arm-wrapper" style="position:absolute; top:31px; left:10px; width:24px;">
+                                <img class="arm left-arm" src="kenny/Player/Limbs/arm.png" style="width:100%; transform-origin: top center;">
+                            </div>
+                            <div class="right-arm-wrapper" style="position:absolute; top:31px; left:60px; width:24px;">
+                                <img class="arm right-arm" src="kenny/Player/Limbs/arm.png" style="width:100%; transform-origin: top center; transform: scaleX(-1);">
+                            </div>
+                            <div class="left-leg-wrapper" style="position:absolute; top:75px; left:22px; width:28px;">
+                                <img class="leg left-leg" src="kenny/Player/Limbs/leg.png" style="width:100%; transform-origin: top center;">
+                            </div>
+                            <div class="right-leg-wrapper" style="position:absolute; top:75px; left:54px; width:28px;">
+                                <img class="leg right-leg" src="kenny/Player/Limbs/leg.png" style="width:100%; transform-origin: top center;">
+                            </div>`;
+
+                        document.body.appendChild(avatar);
+                        
+                        const avatarObj = {
+                            element: avatar,
+                            x: Math.random() * (window.innerWidth - AVATAR_SIZE),
+                            y: Math.random() * (window.innerHeight - AVATAR_SIZE),
+                            speedX: randomDirection(),
+                            speedY: randomDirection(),
+                            wandering: true,
+                            wanderArea: {
+                                x: 0,
+                                y: 0,
+                                width: window.innerWidth - AVATAR_SIZE,
+                                height: window.innerHeight - AVATAR_SIZE
+                            },
+                            name: data.name
+                        };
+                        
+                        avatars.push(avatarObj);
+                        setInterval(() => changeDirection(avatarObj), Math.random() * 5000 + 2000);
+                    }
+                });
+
+                generateQRCode();
             } catch (error) {
                 console.error('Error creating avatars:', error);
             }
@@ -328,14 +304,15 @@
                 const head = avatar.element.querySelector('.head');
                 const currentUrl = new URL(head.src);
                 const params = new URLSearchParams(currentUrl.search);
+
+                // Store original eyeType
+                const originalEyeType = params.get('eyeType');
+
                 params.set('eyeType', 'Surprised');
                 
                 // Construct new URL while preserving other parameters
                 const newUrl = `https://avataaars.io/?${params.toString()}`;
                 head.src = newUrl;
-                
-                // Store original eyeType
-                const originalEyeType = params.get('eyeType');
                 
                 // Reset back to original after 2 seconds
                 setTimeout(() => {
@@ -345,128 +322,41 @@
             });
         }
 
-        const msalConfig = {
-            auth: {
-                clientId: "c7f8f88e-acc5-460e-8804-cf10a5add04a",
-                authority: "https://login.microsoftonline.com/01ccac32-f91d-473a-8053-685093a64a2f",
-                redirectUri: "https://localhost:7215/Main.html",
-                navigateToLoginRequestUrl: false
-            },
-            cache: {
-                cacheLocation: "sessionStorage",
-                storeAuthStateInCookie: true
-            }
-        };
+        function generateQRCode() {
+            // Generate Avatar Editor QR Code
+            const qr = qrcode(0, 'M');
+            const editorUrl = window.location.href.replace('Main.html', 'AvatarEditor.html');
+            qr.addData(editorUrl);
+            qr.make();
+            
+            const qrHtml = qr.createImgTag(4);
+            const qrContainer = document.getElementById('qrcode');
+            qrContainer.innerHTML = qrHtml;
+            
+            qrContainer.style.backgroundColor = 'rgba(255, 255, 255, 0.5)';
+            qrContainer.style.padding = '10px';
+            qrContainer.style.borderRadius = '8px';
 
-        let msalInstance;
-        try {
-            msalInstance = new msal.PublicClientApplication(msalConfig);
-        } catch (error) {
-            console.error("Failed to initialize MSAL:", error);
-        }
-
-        // Add this function to handle the redirect result when the page loads
-        window.addEventListener('load', async () => {
-            if (!msalInstance) return;
-
-            try {
-                // Handle the redirect promise
-                const response = await msalInstance.handleRedirectPromise();
-                
-                if (response) {
-                    console.log("Redirect response received");
-                    // Get stored return URL
-                    const returnUrl = sessionStorage.getItem('returnUrl');
-                    if (returnUrl && returnUrl !== window.location.href) {
-                        window.location.href = returnUrl;
-                        return;
-                    }
-                    await fetchFormDataWithToken(response.accessToken);
-                } else {
-                    // Check if we have any accounts
-                    const accounts = msalInstance.getAllAccounts();
-                    if (accounts.length > 0) {
-                        console.log("User already signed in");
-                    }
-                }
-            } catch (error) {
-                console.error("Error handling redirect:", error);
-            }
-        });
-
-        function handleResponse(response) {
-            if (response) {
-                fetchFormDataWithToken(response.accessToken);
-            }
-        }
-
-        async function fetchFormDataWithToken(token) {
-            try {
-                const formId = "MqzMAR35OkeAU2hQk6ZKL2tvoNEC7VROklHaAkTFODtURDNKQUE4RFRQTEVRS0NYR1dKQlg3RUVZRS4u";
-                const response = await fetch(
-                    `https://graph.microsoft.com/v1.0/users/me/forms/${formId}/responses`, {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Accept': 'application/json'
-                    }
-                });
-
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                const data = await response.json();
-                console.log("Form results:", data);
-                
-            } catch (error) {
-                console.error("Error fetching form results:", error);
-                alert("Unable to fetch form results. Please check console for details.");
-            }
-        }
-
-        async function fetchFormResults() {
-            if (!msalInstance) {
-                console.error("MSAL not initialized");
-                alert("Authentication system not initialized. Please refresh the page.");
-                return;
-            }
-
-            const loginRequest = {
-                scopes: ["https://graph.microsoft.com/.default"],
-                redirectUri: "https://localhost:7215/Main.html",
-                prompt: "select_account"
-            };
-
-            try {
-                const accounts = msalInstance.getAllAccounts() || [];
-                
-                if (accounts.length > 0) {
-                    const silentRequest = {
-                        ...loginRequest,
-                        account: accounts[0]
-                    };
-                    
-                    try {
-                        const response = await msalInstance.acquireTokenSilent(silentRequest);
-                        await fetchFormDataWithToken(response.accessToken);
-                    } catch (silentError) {
-                        console.log("Silent token acquisition failed, starting redirect...");
-                        sessionStorage.setItem('returnUrl', window.location.href);
-                        await msalInstance.acquireTokenRedirect(loginRequest);
-                    }
-                } else {
-                    console.log("No accounts found, starting login redirect...");
-                    sessionStorage.setItem('returnUrl', window.location.href);
-                    await msalInstance.loginRedirect(loginRequest);
-                }
-            } catch (error) {
-                console.error("Error in auth flow:", error);
-                alert("Authentication failed. Please check console for details.");
-            }
+            // Generate Vote Button QR Code
+            const voteQr = qrcode(0, 'M');
+            const baseUrl = getApiBaseUrl();
+            const voteButtonUrl = window.location.href.replace('Main.html', 'VoteButton.html');
+            const urlWithParams = baseUrl ? `${voteButtonUrl}?apiUrl=${encodeURIComponent(baseUrl)}` : voteButtonUrl;
+            voteQr.addData(urlWithParams);
+            voteQr.make();
+            
+            const voteQrHtml = voteQr.createImgTag(4);
+            const voteQrContainer = document.getElementById('vote-qrcode');
+            voteQrContainer.innerHTML = voteQrHtml;
+            
+            voteQrContainer.style.backgroundColor = 'rgba(255, 255, 255, 0.5)';
+            voteQrContainer.style.padding = '10px';
+            voteQrContainer.style.borderRadius = '8px';
         }
 
         // Call the function when page loads
-        createAvatarsFromNames();
+        connectWebSocket();
+        loadAvatars();
     </script>
 </body>
 </html>

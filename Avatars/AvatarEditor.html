@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Avatar Editor</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 10px;
+        }
+        
+        @media (min-width: 768px) {
+            body {
+                padding: 20px;
+            }
+        }
+        
+        .editor-container {
+            display: flex;
+            gap: 40px;
+            margin-top: 20px;
+            flex-direction: column-reverse;
+        }
+        
+        @media (min-width: 768px) {
+            .editor-container {
+                flex-direction: row;
+            }
+        }
+        
+        .controls {
+            flex: 1;
+            max-height: none;
+            overflow-y: visible;
+            padding-right: 0;
+        }
+        
+        @media (min-width: 768px) {
+            .controls {
+                max-height: 80vh;
+                overflow-y: auto;
+                padding-right: 20px;
+            }
+        }
+        
+        .preview {
+            flex: 1;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        @media (min-width: 768px) {
+            #avatarPreview {
+                width: 200px;
+            }
+        }
+        
+        select {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 15px;
+            font-size: 16px;
+            height: 44px;
+        }
+        
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        button:hover {
+            background-color: #45a049;
+        }
+        
+        .success-message {
+            color: #4CAF50;
+            margin-top: 10px;
+            display: none;
+        }
+        
+        .option-group {
+            margin-bottom: 10px;
+        }
+        
+        @media (min-width: 768px) {
+            .option-group {
+                margin-bottom: 15px;
+            }
+        }
+        
+        .option-controls {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        
+        .option-controls select {
+            flex: 1;
+            margin-bottom: 0;
+        }
+        
+        .option-controls button {
+            padding: 12px 16px;
+            background-color: #666;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            min-width: 48px;
+            font-size: 18px;
+        }
+        
+        .save-button {
+            margin-top: 20px;
+            width: 100%;
+        }
+        
+        .random-button {
+            width: 100%;
+            margin-bottom: 20px;
+            background-color: #9C27B0;  /* Purple color */
+            font-size: 16px;
+        }
+        
+        .random-button:hover {
+            background-color: #7B1FA2;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #666;
+        }
+        
+        #avatarPreview {
+            width: 150px;
+            max-width: 100%;
+        }
+        
+        h1 {
+            font-size: 24px;
+            margin: 10px 0;
+        }
+        
+        @media (min-width: 768px) {
+            h1 {
+                font-size: 32px;
+                margin: 20px 0;
+            }
+        }
+        
+        .top-controls {
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        @media (min-width: 768px) {
+            .top-controls {
+                flex-direction: row;
+                align-items: flex-start;
+            }
+            
+            #userSelect {
+                flex: 1;
+                margin-bottom: 0;
+            }
+            
+            .save-button {
+                margin-top: 0;
+                width: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Avatar Editor</h1>
+    
+    <div class="top-controls">
+        <select id="userSelect">
+            <option value="">Select a user...</option>
+        </select>
+        <button onclick="saveConfiguration()" class="save-button">Save Configuration</button>
+        <div id="successMessage" class="success-message">Configuration saved successfully!</div>
+    </div>
+    
+    <div class="editor-container">
+        <div class="controls">
+            <h3>Customize Your Avatar</h3>
+            
+            <div class="option-group">
+                <button onclick="randomizeAll()" class="random-button">
+                    🎲 Randomize All
+                </button>
+            </div>
+            
+            <div class="option-group">
+                <label for="topType">Hair Style:</label>
+                <div class="option-controls">
+                    <button onclick="cycleOption('topType', -1)">←</button>
+                    <select id="topType"></select>
+                    <button onclick="cycleOption('topType', 1)">→</button>
+                </div>
+            </div>
+
+            <div class="option-group">
+                <label for="accessoriesType">Accessories:</label>
+                <div class="option-controls">
+                    <button onclick="cycleOption('accessoriesType', -1)">←</button>
+                    <select id="accessoriesType"></select>
+                    <button onclick="cycleOption('accessoriesType', 1)">→</button>
+                </div>
+            </div>
+
+            <div class="option-group">
+                <label for="hatColor">Hat Color:</label>
+                <div class="option-controls">
+                    <button onclick="cycleOption('hatColor', -1)">←</button>
+                    <select id="hatColor"></select>
+                    <button onclick="cycleOption('hatColor', 1)">→</button>
+                </div>
+            </div>
+
+            <div class="option-group">
+                <label for="hairColor">Hair Color:</label>
+                <div class="option-controls">
+                    <button onclick="cycleOption('hairColor', -1)">←</button>
+                    <select id="hairColor"></select>
+                    <button onclick="cycleOption('hairColor', 1)">→</button>
+                </div>
+            </div>
+
+            <div class="option-group">
+                <label for="facialHairType">Facial Hair:</label>
+                <div class="option-controls">
+                    <button onclick="cycleOption('facialHairType', -1)">←</button>
+                    <select id="facialHairType"></select>
+                    <button onclick="cycleOption('facialHairType', 1)">→</button>
+                </div>
+            </div>
+
+            <div class="option-group">
+                <label for="facialHairColor">Facial Hair Color:</label>
+                <div class="option-controls">
+                    <button onclick="cycleOption('facialHairColor', -1)">←</button>
+                    <select id="facialHairColor"></select>
+                    <button onclick="cycleOption('facialHairColor', 1)">→</button>
+                </div>
+            </div>
+
+            <div class="option-group">
+                <label for="clotheType">Clothes:</label>
+                <div class="option-controls">
+                    <button onclick="cycleOption('clotheType', -1)">←</button>
+                    <select id="clotheType"></select>
+                    <button onclick="cycleOption('clotheType', 1)">→</button>
+                </div>
+            </div>
+
+            <div class="option-group">
+                <label for="clotheColor">Clothes Color:</label>
+                <div class="option-controls">
+                    <button onclick="cycleOption('clotheColor', -1)">←</button>
+                    <select id="clotheColor"></select>
+                    <button onclick="cycleOption('clotheColor', 1)">→</button>
+                </div>
+            </div>
+
+            <div class="option-group">
+                <label for="graphicType">Graphic:</label>
+                <div class="option-controls">
+                    <button onclick="cycleOption('graphicType', -1)">←</button>
+                    <select id="graphicType"></select>
+                    <button onclick="cycleOption('graphicType', 1)">→</button>
+                </div>
+            </div>
+
+            <div class="option-group">
+                <label for="eyeType">Eyes:</label>
+                <div class="option-controls">
+                    <button onclick="cycleOption('eyeType', -1)">←</button>
+                    <select id="eyeType"></select>
+                    <button onclick="cycleOption('eyeType', 1)">→</button>
+                </div>
+            </div>
+
+            <div class="option-group">
+                <label for="eyebrowType">Eyebrows:</label>
+                <div class="option-controls">
+                    <button onclick="cycleOption('eyebrowType', -1)">←</button>
+                    <select id="eyebrowType"></select>
+                    <button onclick="cycleOption('eyebrowType', 1)">→</button>
+                </div>
+            </div>
+
+            <div class="option-group">
+                <label for="mouthType">Mouth:</label>
+                <div class="option-controls">
+                    <button onclick="cycleOption('mouthType', -1)">←</button>
+                    <select id="mouthType"></select>
+                    <button onclick="cycleOption('mouthType', 1)">→</button>
+                </div>
+            </div>
+
+            <div class="option-group">
+                <label for="skinColor">Skin Color:</label>
+                <div class="option-controls">
+                    <button onclick="cycleOption('skinColor', -1)">←</button>
+                    <select id="skinColor"></select>
+                    <button onclick="cycleOption('skinColor', 1)">→</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="preview">
+            <h3>Preview</h3>
+            <img id="avatarPreview" style="width: 200px;">
+        </div>
+    </div>
+
+    <script>
+        const options = {
+            topType: [
+                'NoHair', 'Eyepatch', 'Hat', 'Hijab', 'Turban', 'WinterHat1', 'WinterHat2', 'WinterHat3', 'WinterHat4',
+                'LongHairBigHair', 'LongHairBob', 'LongHairBun', 'LongHairCurly', 'LongHairCurvy', 'LongHairDreads',
+                'LongHairFrida', 'LongHairFro', 'LongHairFroBand', 'LongHairNotTooLong', 'LongHairShavedSides',
+                'LongHairMiaWallace', 'LongHairStraight', 'LongHairStraight2', 'LongHairStraightStrand',
+                'ShortHairDreads01', 'ShortHairDreads02', 'ShortHairFrizzle', 'ShortHairShaggyMullet', 'ShortHairShortCurly',
+                'ShortHairShortFlat', 'ShortHairShortRound', 'ShortHairShortWaved', 'ShortHairSides', 'ShortHairTheCaesar',
+                'ShortHairTheCaesarSidePart'
+            ],
+            accessoriesType: [
+                'Blank', 'Kurt', 'Prescription01', 'Prescription02', 'Round', 'Sunglasses', 'Wayfarers'
+            ],
+            hatColor: [
+                'Black', 'Blue01', 'Blue02', 'Blue03', 'Gray01', 'Gray02', 'Heather', 'PastelBlue', 'PastelGreen',
+                'PastelOrange', 'PastelRed', 'PastelYellow', 'Pink', 'Red', 'White'
+            ],
+            hairColor: [
+                'Auburn', 'Black', 'Blonde', 'BlondeGolden', 'Brown', 'BrownDark', 'PastelPink', 'Platinum',
+                'Red', 'SilverGray'
+            ],
+            facialHairType: [
+                'Blank', 'BeardMedium', 'BeardLight', 'BeardMajestic', 'MoustacheFancy', 'MoustacheMagnum'
+            ],
+            facialHairColor: [
+                'Auburn', 'Black', 'Blonde', 'BlondeGolden', 'Brown', 'BrownDark', 'Platinum', 'Red'
+            ],
+            clotheType: [
+                'BlazerShirt', 'BlazerSweater', 'CollarSweater', 'GraphicShirt', 'Hoodie', 'Overall',
+                'ShirtCrewNeck', 'ShirtScoopNeck', 'ShirtVNeck'
+            ],
+            clotheColor: [
+                'Black', 'Blue01', 'Blue02', 'Blue03', 'Gray01', 'Gray02', 'Heather', 'PastelBlue',
+                'PastelGreen', 'PastelOrange', 'PastelRed', 'PastelYellow', 'Pink', 'Red', 'White'
+            ],
+            graphicType: [
+                'Bat', 'Cumbia', 'Deer', 'Diamond', 'Hola', 'Pizza', 'Resist', 'Selena', 'Bear', 'SkullOutline',
+                'Skull'
+            ],
+            eyeType: [
+                'Close', 'Cry', 'Default', 'Dizzy', 'EyeRoll', 'Happy', 'Hearts', 'Side', 'Squint', 'Surprised',
+                'Wink', 'WinkWacky'
+            ],
+            eyebrowType: [
+                'Angry', 'AngryNatural', 'Default', 'DefaultNatural', 'FlatNatural', 'RaisedExcited',
+                'RaisedExcitedNatural', 'SadConcerned', 'SadConcernedNatural', 'UnibrowNatural', 'UpDown',
+                'UpDownNatural'
+            ],
+            mouthType: [
+                'Concerned', 'Default', 'Disbelief', 'Eating', 'Grimace', 'Sad', 'ScreamOpen', 'Serious',
+                'Smile', 'Tongue', 'Twinkle', 'Vomit'
+            ],
+            skinColor: [
+                'Tanned', 'Yellow', 'Pale', 'Light', 'Brown', 'DarkBrown', 'Black'
+            ]
+        };
+
+        function getApiBaseUrl() {
+            const params = new URLSearchParams(window.location.search);
+            return params.get('apiUrl') || "";
+        }
+
+        // Populate select elements with options
+        Object.keys(options).forEach(key => {
+            const select = document.getElementById(key);
+            options[key].forEach(option => {
+                const optElement = document.createElement('option');
+                optElement.value = option;
+                optElement.textContent = option;
+                select.appendChild(optElement);
+            });
+        });
+
+        // Load saved users
+        async function loadUsers() {
+            try {
+                const baseUrl = getApiBaseUrl();
+                const response = await fetch(`${baseUrl}api/avatar/users`);
+                if (!response.ok) throw new Error('Failed to fetch users');
+                
+                const users = await response.json();
+                const select = document.getElementById('userSelect');
+                
+                users.forEach(user => {
+                    const option = document.createElement('option');
+                    option.value = user;
+                    option.textContent = user;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error loading users:', error);
+            }
+        }
+
+        // Update preview when any option changes
+        function updatePreview() {
+            const params = new URLSearchParams();
+            params.set('avatarStyle', 'Transparent');
+            
+            Object.keys(options).forEach(key => {
+                const select = document.getElementById(key);
+                params.set(key, select.value);
+            });
+            
+            const previewUrl = `https://avataaars.io/?${params.toString()}`;
+            document.getElementById('avatarPreview').src = previewUrl;
+        }
+
+        // Add change event listeners to all selects
+        Object.keys(options).forEach(key => {
+            document.getElementById(key).addEventListener('change', updatePreview);
+        });
+
+        async function saveConfiguration() {
+            const userName = document.getElementById('userSelect').value;
+            if (!userName) {
+                alert('Please select a user');
+                return;
+            }
+
+            const avatarData = {
+                name: userName,
+                options: {}
+            };
+
+            Object.keys(options).forEach(key => {
+                avatarData.options[key] = document.getElementById(key).value;
+            });
+
+            try {
+                const baseUrl = getApiBaseUrl();
+                const response = await fetch(`${baseUrl}api/avatar/config`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(avatarData)
+                });
+
+                if (!response.ok) throw new Error('Failed to save configuration');
+
+                const successMessage = document.getElementById('successMessage');
+                successMessage.style.display = 'block';
+                setTimeout(() => {
+                    successMessage.style.display = 'none';
+                }, 3000);
+            } catch (error) {
+                console.error('Error saving configuration:', error);
+                alert('Failed to save configuration');
+            }
+        }
+
+        function cycleOption(optionType, direction) {
+            const select = document.getElementById(optionType);
+            const currentIndex = select.selectedIndex;
+            const optionsCount = select.options.length;
+            
+            let newIndex = currentIndex + direction;
+            if (newIndex >= optionsCount) newIndex = 0;
+            if (newIndex < 0) newIndex = optionsCount - 1;
+            
+            select.selectedIndex = newIndex;
+            updatePreview();
+        }
+        
+        function randomizeAll() {
+            Object.keys(options).forEach(key => {
+                const select = document.getElementById(key);
+                const randomIndex = Math.floor(Math.random() * select.options.length);
+                select.selectedIndex = randomIndex;
+            });
+            updatePreview();
+        }
+
+        // Initialize
+        loadUsers();
+        updatePreview();
+    </script>
+</body>
+</html> 

@@ -8,18 +8,63 @@ const colors = [
     // Count avatars per lunch
     let lunchCounts = {};
 
+// Add at the top of the file with other global variables
+let squaresVisible = false;
+let activeTimeouts = []; // Track active timeouts
+
 function getApiBaseUrl() {
     const params = new URLSearchParams(window.location.search);
-    return params.get('apiUrl') || 'https://localhost:7216';  // Default if not specified
+    return params.get('apiUrl');  // Default if not specified
 }
 
 async function showSquaresLayout() {
-    console.log("IS THIS LOGGED?!");
+    const chart = document.getElementById('chartContainer');
+    
+    // If squares are already visible, hide them and reset
+    if (squaresVisible) {
+        squaresVisible = false;
+        chart.style.transition = 'transform 0.5s cubic-bezier(0, 1, 0, 1)';
+        chart.style.transform = 'translate(-50%, -50%) scale(0)';
+
+        // Clear all active timeouts
+        activeTimeouts.forEach(timeout => clearTimeout(timeout));
+        activeTimeouts = [];
+
+        // Reset wander area and speeds for all avatars
+        avatars.forEach(avatar => {
+            // Clear any running intervals
+            if (avatar.wanderInterval) clearInterval(avatar.wanderInterval);
+            if (avatar.checkInterval) clearInterval(avatar.checkInterval);
+            
+            // Reset wandering state
+            avatar.wandering = true;
+            avatar.wanderToTarget = false;
+            
+            // Reset wander area to full screen
+            avatar.wanderArea = {
+                x: 0,
+                y: 0,
+                width: window.innerWidth - AVATAR_SIZE,
+                height: window.innerHeight - AVATAR_SIZE
+            };
+            
+            // Reset to normal wandering speed
+            avatar.speedX = randomDirection();
+            avatar.speedY = randomDirection();
+
+            // Reset eyes
+            resetAvatarEyes(avatar);
+        });
+        return;
+    }
+
     try {
-        console.log("Do the actual good one?");
+        // Set flag to indicate squares are now visible
+        squaresVisible = true;
+
         // Fetch lunch choices from emails
         const baseUrl = getApiBaseUrl();
-        const response = await fetch(`${baseUrl}/api/Gmail/mails`);
+        const response = await fetch(`${baseUrl}api/avatar/mails`);
         if (!response.ok) {
             throw new Error('Failed to fetch lunch data');
         }
@@ -47,10 +92,7 @@ async function showSquaresLayout() {
             lunchCounts[avatar.selectedLunch] = (lunchCounts[avatar.selectedLunch] || 0) + 1;
         });
 
-
-
         // Continue with existing layout code...
-        const chart = document.getElementById('chartContainer');
         const svgElement = document.getElementById('voteChart');
         
         svgElement.innerHTML = '';
@@ -112,29 +154,66 @@ async function showSquaresLayout() {
             currentX += squareWidth + gap;
         });
 
-        setTimeout(() => {
+        // Store timeout IDs when creating timeouts
+        activeTimeouts.push(setTimeout(() => {
             moveAvatarsToSquares(lunchPositions);
-        }, 500);
+        }, 500));
 
-        setTimeout(() => {
+        activeTimeouts.push(setTimeout(() => {
             chart.style.transform = 'translate(-50%, -50%) scale(1.1)';
-            setTimeout(() => {
-                chart.style.transition = 'transform 0.5s cubic-bezier(0, 1, 0, 1)';
-                chart.style.transform = 'translate(-50%, -50%) scale(0)';
+            activeTimeouts.push(setTimeout(() => {
+                if (squaresVisible) {
+                    squaresVisible = false;
+                    chart.style.transition = 'transform 0.5s cubic-bezier(0, 1, 0, 1)';
+                    chart.style.transform = 'translate(-50%, -50%) scale(0)';
 
-                // Reset wander area to full screen
-                avatars.forEach(avatar => {
-                    avatar.wanderArea = { x: 0, y: 0, width: viewportWidth, height: viewportHeight };
-                });
-            }, 300);
-        }, 35000);
+                    // Reset wander area and speeds for all avatars
+                    avatars.forEach(avatar => {
+                        // Clear any running intervals
+                        if (avatar.wanderInterval) clearInterval(avatar.wanderInterval);
+                        if (avatar.checkInterval) clearInterval(avatar.checkInterval);
+                        
+                        // Reset wandering state
+                        avatar.wandering = true;
+                        avatar.wanderToTarget = false;
+                        
+                        // Reset wander area to full screen
+                        avatar.wanderArea = { 
+                            x: 0, 
+                            y: 0, 
+                            width: viewportWidth, 
+                            height: viewportHeight 
+                        };
+                        
+                        // Reset to normal wandering speed
+                        avatar.speedX = randomDirection();
+                        avatar.speedY = randomDirection();
+
+                        // Reset eyes
+                        resetAvatarEyes(avatar);
+                    });
+                }
+            }, 300));
+        }, 20000));
     } catch (error) {
         console.error('Error organizing avatars by lunch:', error);
+        squaresVisible = false;
+        // Clear timeouts in case of error
+        activeTimeouts.forEach(timeout => clearTimeout(timeout));
+        activeTimeouts = [];
     }
 }
 
 function moveAvatarsToSquares(lunchPositions) {
     avatars.forEach(avatar => {
+        // Make all avatars surprised while running
+        const head = avatar.element.querySelector('.head');
+        const currentUrl = new URL(head.src);
+        const params = new URLSearchParams(currentUrl.search);
+        const originalEyeType = params.get('eyeType');
+        params.set('eyeType', 'Surprised');
+        head.src = `https://avataaars.io/?${params.toString()}`;
+
         const lunchPosition = lunchPositions[avatar.selectedLunch];
         
         // Account for stroke width when calculating target area
@@ -146,53 +225,51 @@ function moveAvatarsToSquares(lunchPositions) {
             height: lunchPosition.height - (strokeWidth * 2)
         };
         
-        // Calculate target position within the adjusted lunch area
         const targetX = adjustedLunchPosition.x + Math.random() * (adjustedLunchPosition.width - AVATAR_SIZE);
         const targetY = adjustedLunchPosition.y + Math.random() * (adjustedLunchPosition.height - AVATAR_SIZE);
 
-        // Set wandering properties
         avatar.wandering = true;
         avatar.targetX = targetX;
         avatar.targetY = targetY;
-        
-        // Update the animation loop to handle wandering towards target
         avatar.wanderToTarget = true;
         
-        // Set initial random direction towards target
         const angleToTarget = Math.atan2(targetY - avatar.y, targetX - avatar.x);
-        const randomAngleOffset = (Math.random() - 0.5) * Math.PI / 2; // Random angle ±45 degrees
-        const speed = 3;
+        const randomAngleOffset = (Math.random() - 0.5) * Math.PI / 2;
+        const runningSpeed = 6.5; // Speed while running to lunch box (2.5x)
         
-        avatar.speedX = Math.cos(angleToTarget + randomAngleOffset) * speed;
-        avatar.speedY = Math.sin(angleToTarget + randomAngleOffset) * speed;
+        avatar.speedX = Math.cos(angleToTarget + randomAngleOffset) * runningSpeed;
+        avatar.speedY = Math.sin(angleToTarget + randomAngleOffset) * runningSpeed;
         
-        // Schedule periodic direction updates
         avatar.wanderInterval = setInterval(() => {
             if (!avatar.wanderToTarget) {
                 clearInterval(avatar.wanderInterval);
                 return;
             }
 
-            // Calculate new direction towards target with some randomness
             const newAngle = Math.atan2(targetY - avatar.y, targetX - avatar.x);
             const newRandomOffset = (Math.random() - 0.5) * Math.PI / 2;
             
-            avatar.speedX = Math.cos(newAngle + newRandomOffset) * speed;
-            avatar.speedY = Math.sin(newAngle + newRandomOffset) * speed;
+            avatar.speedX = Math.cos(newAngle + newRandomOffset) * runningSpeed;
+            avatar.speedY = Math.sin(newAngle + newRandomOffset) * runningSpeed;
         }, 1000);
 
-        // Check if avatar has reached target area
         avatar.checkInterval = setInterval(() => {
-            const dx = targetX - avatar.x;
-            const dy = targetY - avatar.y;
-            const distance = Math.sqrt(dx * dx + dy * dy);
+            // Check if avatar is inside the lunch box bounds
+            const isInBox = 
+                avatar.x >= adjustedLunchPosition.x && 
+                avatar.x <= adjustedLunchPosition.x + adjustedLunchPosition.width - AVATAR_SIZE &&
+                avatar.y >= adjustedLunchPosition.y && 
+                avatar.y <= adjustedLunchPosition.y + adjustedLunchPosition.height - AVATAR_SIZE;
 
-            if (distance < 20) { // Avatar has reached target
+            if (isInBox) {
                 clearInterval(avatar.wanderInterval);
                 clearInterval(avatar.checkInterval);
                 avatar.wanderToTarget = false;
                 
-                // Update wander area to stay within lunch rectangle
+                // Reset eyes back to original state when reaching destination
+                params.set('eyeType', originalEyeType);
+                head.src = `https://avataaars.io/?${params.toString()}`;
+                
                 avatar.wanderArea = {
                     x: adjustedLunchPosition.x,
                     y: adjustedLunchPosition.y,
@@ -200,10 +277,29 @@ function moveAvatarsToSquares(lunchPositions) {
                     height: adjustedLunchPosition.height - AVATAR_SIZE
                 };
                 
-                // Reset to normal wandering behavior
-                avatar.speedX = randomDirection();
-                avatar.speedY = randomDirection();
+                // Slow down to 0.5x speed when in lunch box
+                const lunchBoxSpeed = 1.5;
+                avatar.speedX = (Math.random() - 0.5) * lunchBoxSpeed;
+                avatar.speedY = (Math.random() - 0.5) * lunchBoxSpeed;
             }
         }, 100);
     });
+}
+
+// Modify the randomDirection function to return normal speed (1x) for general wandering
+function randomDirection() {
+    const normalSpeed = 3; // Base speed (1x)
+    return (Math.random() - 0.5) * normalSpeed;
+}
+
+// Helper function to reset avatar eyes
+function resetAvatarEyes(avatar) {
+    const head = avatar.element.querySelector('.head');
+    const currentUrl = new URL(head.src);
+    const params = new URLSearchParams(currentUrl.search);
+    const originalEyeType = params.get('eyeType');
+    if (originalEyeType === 'Surprised') {
+        params.set('eyeType', 'Default');
+        head.src = `https://avataaars.io/?${params.toString()}`;
+    }
 } 

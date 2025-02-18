@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vote Button</title>
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f0f0f0;
+        }
+        .vote-button {
+            width: 80vw;
+            height: 80vw;
+            max-width: 300px;
+            max-height: 300px;
+            border-radius: 50%;
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .vote-button:active {
+            transform: scale(0.95);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+    </style>
+</head>
+<body>
+    <button class="vote-button" onclick="triggerVote()">VOTE!</button>
+
+    <script>
+        async function triggerVote() {
+            try {
+                const baseUrl = new URLSearchParams(window.location.search).get('apiUrl') || '';
+                const response = await fetch(`${baseUrl}api/avatar/triggervote`, {
+                    method: 'POST'
+                });
+                
+                if (response.ok) {
+                    // Visual feedback
+                    document.querySelector('.vote-button').style.backgroundColor = '#45a049';
+                    setTimeout(() => {
+                        document.querySelector('.vote-button').style.backgroundColor = '#4CAF50';
+                    }, 200);
+                }
+            } catch (error) {
+                console.error('Error triggering vote:', error);
+            }
+        }
+    </script>
+</body>
+</html> 
