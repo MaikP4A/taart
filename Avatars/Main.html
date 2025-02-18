@@ -10,6 +10,10 @@
             transform: scale(0.5);
             transform-origin: top left;
             background-color: white;
+            background-image: url('Image.jpeg');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: center;
             width: 200vw;  /* Double the viewport width to account for scaling */
             height: 200vh; /* Double the viewport height to account for scaling */
             margin: 0;
@@ -43,6 +47,7 @@
         const FRAME_INTERVAL = 16;
         let lastFrameTime = 0;
         let ws;
+        const SCALE_FACTOR = 0.5;
 
         function randomDirection() {
             return (Math.random() - 0.5) * 4;
@@ -233,16 +238,16 @@
                         
                         const avatarObj = {
                             element: avatar,
-                            x: Math.random() * (window.innerWidth - AVATAR_SIZE),
-                            y: Math.random() * (window.innerHeight - AVATAR_SIZE),
+                            x: Math.random() * (window.innerWidth / SCALE_FACTOR - AVATAR_SIZE),
+                            y: Math.random() * (window.innerHeight / SCALE_FACTOR - AVATAR_SIZE),
                             speedX: randomDirection(),
                             speedY: randomDirection(),
                             wandering: true,
                             wanderArea: {
                                 x: 0,
                                 y: 0,
-                                width: window.innerWidth - AVATAR_SIZE,
-                                height: window.innerHeight - AVATAR_SIZE
+                                width: window.innerWidth / SCALE_FACTOR - AVATAR_SIZE,
+                                height: window.innerHeight / SCALE_FACTOR - AVATAR_SIZE
                             },
                             name: data.name
                         };

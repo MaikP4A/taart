@@ -12,6 +12,7 @@ const colors = [
 let squaresVisible = false;
 let activeTimeouts = []; // Track active timeouts
 
+
 function getApiBaseUrl() {
     const params = new URLSearchParams(window.location.search);
     return params.get('apiUrl');  // Default if not specified
@@ -216,13 +217,13 @@ function moveAvatarsToSquares(lunchPositions) {
 
         const lunchPosition = lunchPositions[avatar.selectedLunch];
         
-        // Account for stroke width when calculating target area
-        const strokeWidth = 20;
+        // Account for stroke width and scale when calculating target area
+        const strokeWidth = 20 / SCALE_FACTOR;
         const adjustedLunchPosition = {
-            x: lunchPosition.x + strokeWidth,
-            y: lunchPosition.y + strokeWidth,
-            width: lunchPosition.width - (strokeWidth * 2),
-            height: lunchPosition.height - (strokeWidth * 2)
+            x: (lunchPosition.x + strokeWidth) / SCALE_FACTOR,
+            y: (lunchPosition.y + strokeWidth) / SCALE_FACTOR,
+            width: (lunchPosition.width - (strokeWidth * 2)) / SCALE_FACTOR,
+            height: (lunchPosition.height - (strokeWidth * 2)) / SCALE_FACTOR
         };
         
         const targetX = adjustedLunchPosition.x + Math.random() * (adjustedLunchPosition.width - AVATAR_SIZE);
@@ -235,7 +236,7 @@ function moveAvatarsToSquares(lunchPositions) {
         
         const angleToTarget = Math.atan2(targetY - avatar.y, targetX - avatar.x);
         const randomAngleOffset = (Math.random() - 0.5) * Math.PI / 2;
-        const runningSpeed = 6.5; // Speed while running to lunch box (2.5x)
+        const runningSpeed = 13; // Increased speed to account for scale
         
         avatar.speedX = Math.cos(angleToTarget + randomAngleOffset) * runningSpeed;
         avatar.speedY = Math.sin(angleToTarget + randomAngleOffset) * runningSpeed;
@@ -286,9 +287,9 @@ function moveAvatarsToSquares(lunchPositions) {
     });
 }
 
-// Modify the randomDirection function to return normal speed (1x) for general wandering
+// Update randomDirection function to account for scale
 function randomDirection() {
-    const normalSpeed = 3; // Base speed (1x)
+    const normalSpeed = 6; // Increased base speed to account for scale
     return (Math.random() - 0.5) * normalSpeed;
 }
 
