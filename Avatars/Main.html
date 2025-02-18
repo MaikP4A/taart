@@ -213,13 +213,25 @@
                         // Create new avatar
                         const avatar = document.createElement('div');
                         avatar.className = 'avatar';
+
+                        var avatarBody = `<img src="kenny/Player/Limbs/body_front.png" style="position:absolute; top:30px; left:15px; width:60px; z-index:1; ">`;
+                        if (data.name === "Tycho van den Heuvel") {                        {
+                            avatarBody = `<img src="kenny/Player/Limbs/body_front_tycho.png" style="position:absolute; top:30px; left:15px; width:60px; z-index:1; ">`;
+                        }
+
+                        var avatarHeadExtra = ``;
+                        if (data.name === "Martijn van Wensveen") {
+                            //TODO: Add correct positioning of Chicekn
+                            avatarHeadExtra = `<img src="kenny/Player/Limbs/chicken.png" style="position:absolute; top:-44px; left:15px; width:60px; z-index:1; ">`
+                        }
                         
                         avatar.innerHTML = `
                             <div class="name-label" style="position:absolute; top:-70px; width:100px; text-align:center; font-family: Arial; font-size: 14px; color: #333; white-space: nowrap;">
                                 ${data.name.split(' ')[0]}
                             </div>
+                            ${avatarHeadExtra}
                             <img class="head" src="https://avataaars.io/?avatarStyle=Transparent&topType=${data.options.topType}&accessoriesType=${data.options.accessoriesType}&hatColor=${data.options.hatColor || 'Black'}&hairColor=${data.options.hairColor || 'BrownDark'}&facialHairType=${data.options.facialHairType || 'Blank'}&facialHairColor=${data.options.facialHairColor || 'Brown'}&clotheType=${data.options.clotheType || 'BlazerShirt'}&clotheColor=${data.options.clotheColor || 'Black'}&graphicType=${data.options.graphicType || 'Diamond'}&eyeType=${data.options.eyeType || 'Default'}&eyebrowType=${data.options.eyebrowType || 'Default'}&mouthType=${data.options.mouthType || 'Default'}&skinColor=${data.options.skinColor || 'Light'}" style="position:absolute; top:-42px; left:0px; width:100px; clip-path: inset(0% 0% 28% 0%);">
-                            <img src="kenny/Player/Limbs/body_front.png" style="position:absolute; top:30px; left:15px; width:60px; z-index:1; ">
+                            ${avatarBody}
                             <div class="left-arm-wrapper" style="position:absolute; top:31px; left:10px; width:24px;">
                                 <img class="arm left-arm" src="kenny/Player/Limbs/arm.png" style="width:100%; transform-origin: top center;">
                             </div>
