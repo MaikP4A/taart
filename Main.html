@@ -1,0 +1,362 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Wandering Avatars Parade</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://alcdn.msauth.net/browser/2.0.0/js/msal-browser.min.js"></script>
+</head>
+<body>
+    <div class="chart-container" id="chartContainer">
+        <svg id="voteChart" width="100%" height="100%"></svg>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="squaresLayout.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+
+    <div id="avatar-editor-container" style="position: fixed; bottom: 20px; right: 20px; text-align: center; background: white; padding: 10px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); z-index: 1000; cursor: pointer;" onclick="window.open(window.location.href.replace('Main.html', 'AvatarEditor.html'), '_blank')">
+        <div style="margin-bottom: 5px; font-family: Arial; font-size: 14px;">Kies avatar</div>
+        <div id="qrcode"></div>
+    </div>
+
+    <div id="vote-button-container" style="position: fixed; bottom: 20px; left: 20px; text-align: center; background: white; padding: 10px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); z-index: 1000; cursor: pointer;" onclick="showSquaresLayout()">
+        <div style="margin-bottom: 5px; font-family: Arial; font-size: 14px;">Vote!</div>
+        <div id="vote-qrcode"></div>
+    </div>
+
+    <script>
+        const avatars = [];
+        const AVATAR_SIZE = 150;
+        const FRAME_INTERVAL = 16;
+        let lastFrameTime = 0;
+        let ws;
+
+        function randomDirection() {
+            return (Math.random() - 0.5) * 4;
+        }
+
+        function changeDirection(avatar) {
+            if (avatar.wandering) {
+                avatar.speedX = randomDirection();
+                avatar.speedY = randomDirection();
+            }
+        }
+
+        const avatarOptions = {
+            topType: [
+                'NoHair', 'Eyepatch', 'Hat', 'Hijab', 'Turban', 'WinterHat1', 'WinterHat2', 'WinterHat3', 'WinterHat4',
+                'LongHairBigHair', 'LongHairBob', 'LongHairBun', 'LongHairCurly', 'LongHairCurvy', 'LongHairDreads',
+                'LongHairFrida', 'LongHairFro', 'LongHairFroBand', 'LongHairNotTooLong', 'LongHairShavedSides',
+                'LongHairMiaWallace', 'LongHairStraight', 'LongHairStraight2', 'LongHairStraightStrand',
+                'ShortHairDreads01', 'ShortHairDreads02', 'ShortHairFrizzle', 'ShortHairShaggyMullet', 'ShortHairShortCurly',
+                'ShortHairShortFlat', 'ShortHairShortRound', 'ShortHairShortWaved', 'ShortHairSides', 'ShortHairTheCaesar',
+                'ShortHairTheCaesarSidePart'
+            ],
+            accessoriesType: [
+                'Blank', 'Kurt', 'Prescription01', 'Prescription02', 'Round', 'Sunglasses', 'Wayfarers'
+            ],
+            hatColor: [
+                'Black', 'Blue01', 'Blue02', 'Blue03', 'Gray01', 'Gray02', 'Heather', 'PastelBlue', 'PastelGreen',
+                'PastelOrange', 'PastelRed', 'PastelYellow', 'Pink', 'Red', 'White'
+            ],
+            hairColor: [
+                'Auburn', 'Black', 'Blonde', 'BlondeGolden', 'Brown', 'BrownDark', 'PastelPink', 'Platinum',
+                'Red', 'SilverGray'
+            ],
+            facialHairType: [
+                'Blank', 'BeardMedium', 'BeardLight', 'BeardMajestic', 'MoustacheFancy', 'MoustacheMagnum'
+            ],
+            facialHairColor: [
+                'Auburn', 'Black', 'Blonde', 'BlondeGolden', 'Brown', 'BrownDark', 'Platinum', 'Red'
+            ],
+            clotheType: [
+                'BlazerShirt', 'BlazerSweater', 'CollarSweater', 'GraphicShirt', 'Hoodie', 'Overall',
+                'ShirtCrewNeck', 'ShirtScoopNeck', 'ShirtVNeck'
+            ],
+            clotheColor: [
+                'Black', 'Blue01', 'Blue02', 'Blue03', 'Gray01', 'Gray02', 'Heather', 'PastelBlue',
+                'PastelGreen', 'PastelOrange', 'PastelRed', 'PastelYellow', 'Pink', 'Red', 'White'
+            ],
+            graphicType: [
+                'Bat', 'Cumbia', 'Deer', 'Diamond', 'Hola', 'Pizza', 'Resist', 'Selena', 'Bear', 'SkullOutline',
+                'Skull'
+            ],
+            eyeType: [
+                'Close', 'Cry', 'Default', 'Dizzy', 'EyeRoll', 'Happy', 'Hearts', 'Side', 'Squint', 'Surprised',
+                'Wink', 'WinkWacky'
+            ],
+            eyebrowType: [
+                'Angry', 'AngryNatural', 'Default', 'DefaultNatural', 'FlatNatural', 'RaisedExcited',
+                'RaisedExcitedNatural', 'SadConcerned', 'SadConcernedNatural', 'UnibrowNatural', 'UpDown',
+                'UpDownNatural'
+            ],
+            mouthType: [
+                'Concerned', 'Default', 'Disbelief', 'Eating', 'Grimace', 'Sad', 'ScreamOpen', 'Serious',
+                'Smile', 'Tongue', 'Twinkle', 'Vomit'
+            ],
+            skinColor: [
+                'Tanned', 'Yellow', 'Pale', 'Light', 'Brown', 'DarkBrown', 'Black'
+            ]
+        };
+
+        function getRandomOption(category) {
+            return avatarOptions[category][Math.floor(Math.random() * avatarOptions[category].length)];
+        }
+
+        function getApiBaseUrl() {
+            const params = new URLSearchParams(window.location.search);
+            return params.get('apiUrl') || "";  // Default if not specified
+        }
+
+        function connectWebSocket() {
+            try {
+                // Get the base URL and convert http(s) to ws(s)
+                const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+                const baseUrl = getApiBaseUrl();
+                const wsUrl = baseUrl ? 
+                    `${protocol}//${new URL(baseUrl).host}/ws` : 
+                    `${protocol}//${window.location.host}/ws`;
+                
+                console.log('Connecting to WebSocket at:', wsUrl);
+                
+                ws = new WebSocket(wsUrl);
+                
+                ws.onopen = () => {
+                    console.log('WebSocket connected successfully');
+                    // Start periodic refresh when WebSocket connects
+                    startPeriodicRefresh();
+                };
+                
+                ws.onmessage = (event) => {
+                    console.log('WebSocket message received:', event.data);
+                    if (event.data === 'avatar_updated') {
+                        console.log('Avatar update received, reloading avatars...');
+                        loadAvatars();
+                    } else if (event.data === 'trigger_vote') {
+                        console.log('Vote trigger received, showing squares layout...');
+                        showSquaresLayout();
+                    }
+                };
+                
+                ws.onclose = (event) => {
+                    console.log('WebSocket disconnected. Code:', event.code, 'Reason:', event.reason);
+                    setTimeout(connectWebSocket, 5000); // Reconnect after 5 seconds
+                };
+                
+                ws.onerror = (error) => {
+                    console.error('WebSocket error:', error);
+                };
+            } catch (error) {
+                console.error('Error setting up WebSocket:', error);
+                setTimeout(connectWebSocket, 5000);
+            }
+        }
+
+        // Add new function for periodic refresh
+        function startPeriodicRefresh() {
+            // Refresh every 5 minutes (300000 milliseconds)
+            setInterval(() => {
+                console.log('Performing periodic avatar refresh');
+                loadAvatars();
+            }, 300000);
+        }
+
+        async function loadAvatars() {
+            try {
+                const baseUrl = getApiBaseUrl();
+                const response = await fetch(`${baseUrl}/api/avatar/present`);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch avatars');
+                }
+                const avatarData = await response.json();
+                
+                // Keep track of existing avatars by name
+                const existingAvatarsByName = new Map(
+                    avatars.map(avatar => [avatar.name, avatar])
+                );
+                
+                // Remove avatars that are no longer present
+                avatars.forEach((avatar, index) => {
+                    if (!avatarData.find(data => data.name === avatar.name)) {
+                        avatar.element.remove();
+                        avatars.splice(index, 1);
+                    }
+                });
+
+                // Update or create avatars
+                avatarData.forEach(data => {
+                    const existingAvatar = existingAvatarsByName.get(data.name);
+                    
+                    if (existingAvatar) {
+                        // Update existing avatar's appearance only
+                        const head = existingAvatar.element.querySelector('.head');
+                        head.src = `https://avataaars.io/?avatarStyle=Transparent&topType=${data.options.topType}&accessoriesType=${data.options.accessoriesType}&hatColor=${data.options.hatColor || 'Black'}&hairColor=${data.options.hairColor || 'BrownDark'}&facialHairType=${data.options.facialHairType || 'Blank'}&facialHairColor=${data.options.facialHairColor || 'Brown'}&clotheType=${data.options.clotheType || 'BlazerShirt'}&clotheColor=${data.options.clotheColor || 'Black'}&graphicType=${data.options.graphicType || 'Diamond'}&eyeType=${data.options.eyeType || 'Default'}&eyebrowType=${data.options.eyebrowType || 'Default'}&mouthType=${data.options.mouthType || 'Default'}&skinColor=${data.options.skinColor || 'Light'}`;
+                    } else {
+                        // Create new avatar
+                        const avatar = document.createElement('div');
+                        avatar.className = 'avatar';
+                        
+                        avatar.innerHTML = `
+                            <div class="name-label" style="position:absolute; top:-70px; width:100px; text-align:center; font-family: Arial; font-size: 14px; color: #333; white-space: nowrap;">
+                                ${data.name.split(' ')[0]}
+                            </div>
+                            <img class="head" src="https://avataaars.io/?avatarStyle=Transparent&topType=${data.options.topType}&accessoriesType=${data.options.accessoriesType}&hatColor=${data.options.hatColor || 'Black'}&hairColor=${data.options.hairColor || 'BrownDark'}&facialHairType=${data.options.facialHairType || 'Blank'}&facialHairColor=${data.options.facialHairColor || 'Brown'}&clotheType=${data.options.clotheType || 'BlazerShirt'}&clotheColor=${data.options.clotheColor || 'Black'}&graphicType=${data.options.graphicType || 'Diamond'}&eyeType=${data.options.eyeType || 'Default'}&eyebrowType=${data.options.eyebrowType || 'Default'}&mouthType=${data.options.mouthType || 'Default'}&skinColor=${data.options.skinColor || 'Light'}" style="position:absolute; top:-42px; left:0px; width:100px; clip-path: inset(0% 0% 28% 0%);">
+                            <img src="kenny/Player/Limbs/body_front.png" style="position:absolute; top:30px; left:15px; width:60px; z-index:1; ">
+                            <div class="left-arm-wrapper" style="position:absolute; top:31px; left:10px; width:24px;">
+                                <img class="arm left-arm" src="kenny/Player/Limbs/arm.png" style="width:100%; transform-origin: top center;">
+                            </div>
+                            <div class="right-arm-wrapper" style="position:absolute; top:31px; left:60px; width:24px;">
+                                <img class="arm right-arm" src="kenny/Player/Limbs/arm.png" style="width:100%; transform-origin: top center; transform: scaleX(-1);">
+                            </div>
+                            <div class="left-leg-wrapper" style="position:absolute; top:75px; left:22px; width:28px;">
+                                <img class="leg left-leg" src="kenny/Player/Limbs/leg.png" style="width:100%; transform-origin: top center;">
+                            </div>
+                            <div class="right-leg-wrapper" style="position:absolute; top:75px; left:54px; width:28px;">
+                                <img class="leg right-leg" src="kenny/Player/Limbs/leg.png" style="width:100%; transform-origin: top center;">
+                            </div>`;
+
+                        document.body.appendChild(avatar);
+                        
+                        const avatarObj = {
+                            element: avatar,
+                            x: Math.random() * (window.innerWidth - AVATAR_SIZE),
+                            y: Math.random() * (window.innerHeight - AVATAR_SIZE),
+                            speedX: randomDirection(),
+                            speedY: randomDirection(),
+                            wandering: true,
+                            wanderArea: {
+                                x: 0,
+                                y: 0,
+                                width: window.innerWidth - AVATAR_SIZE,
+                                height: window.innerHeight - AVATAR_SIZE
+                            },
+                            name: data.name
+                        };
+                        
+                        avatars.push(avatarObj);
+                        setInterval(() => changeDirection(avatarObj), Math.random() * 5000 + 2000);
+                    }
+                });
+
+                generateQRCode();
+            } catch (error) {
+                console.error('Error creating avatars:', error);
+            }
+        }
+
+        function animateAvatars(timestamp) {
+            if (timestamp - lastFrameTime < FRAME_INTERVAL) {
+                requestAnimationFrame(animateAvatars);
+                return;
+            }
+            lastFrameTime = timestamp;
+
+            avatars.forEach(avatar => {
+                if (avatar.wandering) {
+                    avatar.x += avatar.speedX;
+                    avatar.y += avatar.speedY;
+                    
+                    const { x, y, width, height } = avatar.wanderArea;
+                    
+                    if (avatar.x < x) {
+                        avatar.x = x;
+                        avatar.speedX = Math.abs(avatar.speedX);
+                    } else if (avatar.x > x + width) {
+                        avatar.x = x + width;
+                        avatar.speedX = -Math.abs(avatar.speedX);
+                    }
+                    
+                    if (avatar.y < y) {
+                        avatar.y = y;
+                        avatar.speedY = Math.abs(avatar.speedY);
+                    } else if (avatar.y > y + height) {
+                        avatar.y = y + height;
+                        avatar.speedY = -Math.abs(avatar.speedY);
+                    }
+                }
+                
+                avatar.element.style.transform = `translate(${avatar.x}px, ${avatar.y}px)`;
+                
+                const leftArmWrapper = avatar.element.querySelector('.left-arm-wrapper');
+                const rightArmWrapper = avatar.element.querySelector('.right-arm-wrapper');
+                const leftLegWrapper = avatar.element.querySelector('.left-leg-wrapper');
+                const rightLegWrapper = avatar.element.querySelector('.right-leg-wrapper');
+
+                const isMovingLeft = avatar.speedX < 0;
+
+                leftLegWrapper.style.transform = isMovingLeft ? 'scaleX(-1)' : 'scaleX(1)';
+                rightLegWrapper.style.transform = isMovingLeft ? 'scaleX(-1)' : 'scaleX(1)';
+
+                leftArmWrapper.style.transform = isMovingLeft ? 'scaleX(-1)' : 'scaleX(1)';
+                rightArmWrapper.style.transform = isMovingLeft ? 'scaleX(-1)' : 'scaleX(1)';
+
+                leftArmWrapper.style.zIndex = isMovingLeft ? '-1' : '1';
+                rightArmWrapper.style.zIndex = isMovingLeft ? '1' : '-1';
+            });
+            requestAnimationFrame(animateAvatars);
+        }
+
+        requestAnimationFrame(animateAvatars);
+
+        function makeSurprised() {
+            avatars.forEach(avatar => {
+                const head = avatar.element.querySelector('.head');
+                const currentUrl = new URL(head.src);
+                const params = new URLSearchParams(currentUrl.search);
+
+                // Store original eyeType
+                const originalEyeType = params.get('eyeType');
+
+                params.set('eyeType', 'Surprised');
+                
+                // Construct new URL while preserving other parameters
+                const newUrl = `https://avataaars.io/?${params.toString()}`;
+                head.src = newUrl;
+                
+                // Reset back to original after 2 seconds
+                setTimeout(() => {
+                    params.set('eyeType', originalEyeType);
+                    head.src = `https://avataaars.io/?${params.toString()}`;
+                }, 2000);
+            });
+        }
+
+        function generateQRCode() {
+            // Generate Avatar Editor QR Code
+            const qr = qrcode(0, 'M');
+            const editorUrl = window.location.href.replace('Main.html', 'AvatarEditor.html');
+            qr.addData(editorUrl);
+            qr.make();
+            
+            const qrHtml = qr.createImgTag(4);
+            const qrContainer = document.getElementById('qrcode');
+            qrContainer.innerHTML = qrHtml;
+            
+            qrContainer.style.backgroundColor = 'rgba(255, 255, 255, 0.5)';
+            qrContainer.style.padding = '10px';
+            qrContainer.style.borderRadius = '8px';
+
+            // Generate Vote Button QR Code
+            const voteQr = qrcode(0, 'M');
+            const baseUrl = getApiBaseUrl();
+            const voteButtonUrl = window.location.href.replace('Main.html', 'VoteButton.html');
+            const urlWithParams = baseUrl ? `${voteButtonUrl}?apiUrl=${encodeURIComponent(baseUrl)}` : voteButtonUrl;
+            voteQr.addData(urlWithParams);
+            voteQr.make();
+            
+            const voteQrHtml = voteQr.createImgTag(4);
+            const voteQrContainer = document.getElementById('vote-qrcode');
+            voteQrContainer.innerHTML = voteQrHtml;
+            
+            voteQrContainer.style.backgroundColor = 'rgba(255, 255, 255, 0.5)';
+            voteQrContainer.style.padding = '10px';
+            voteQrContainer.style.borderRadius = '8px';
+        }
+
+        // Call the function when page loads
+        connectWebSocket();
+        loadAvatars();
+    </script>
+</body>
+</html>
