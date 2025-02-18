@@ -170,6 +170,7 @@
                     throw new Error('Failed to fetch avatars');
                 }
                 const avatarData = await response.json();
+
                 
                 // Keep track of existing avatars by name
                 const existingAvatarsByName = new Map(
