@@ -64,7 +64,7 @@ async function showSquaresLayout() {
 
         // Fetch lunch choices from emails
         const baseUrl = getApiBaseUrl();
-        const response = await fetch(`${baseUrl}api/avatar/mails`);
+        const response = await fetch(`${baseUrl}/api/avatar/mails`);
         if (!response.ok) {
             throw new Error('Failed to fetch lunch data');
         }
