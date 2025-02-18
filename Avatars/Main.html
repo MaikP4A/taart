@@ -246,6 +246,18 @@
                                 <img class="leg right-leg" src="kenny/Player/Limbs/leg.png" style="width:100%; transform-origin: top center;">
                             </div>`;
 
+                        if (data.name === "Dick van der Woude") {
+                            avatar.innerHTML = `
+                            <div class="name-label" style="position:absolute; top:${nameTopPosition}; width:100px; text-align:center; font-family: Arial; font-size: 14px; color: #333; white-space: nowrap; z-index:4;">
+                                ${data.name.split(' ')[0]}
+                            </div>
+                            <img class="head" src="https://avataaars.io/?avatarStyle=Transparent&topType=${data.options.topType}&accessoriesType=${data.options.accessoriesType}&hatColor=${data.options.hatColor || 'Black'}&hairColor=${data.options.hairColor || 'BrownDark'}&facialHairType=${data.options.facialHairType || 'Blank'}&facialHairColor=${data.options.facialHairColor || 'Brown'}&clotheType=${data.options.clotheType || 'BlazerShirt'}&clotheColor=${data.options.clotheColor || 'Black'}&graphicType=${data.options.graphicType || 'Diamond'}&eyeType=${data.options.eyeType || 'Default'}&eyebrowType=${data.options.eyebrowType || 'Default'}&mouthType=${data.options.mouthType || 'Default'}&skinColor=${data.options.skinColor || 'Light'}"  style="position:absolute; top:-42px; left:0px; width:100px; clip-path: inset(0% 0% 28% 0%); z-index:2;">
+                            <div class="car-wrapper" style="position:absolute; top:-18px; left:-100px; width:300px; z-index:1; ">
+                                <img class="car" src="kenny/Player/Limbs/cabrio.png" style="width:100%; transform-origin: top center; transform: scaleX(-1);">
+                            </div>
+                            `
+                        }
+
                         document.body.appendChild(avatar);
                         
                         const avatarObj = {
@@ -308,21 +320,28 @@
                 
                 avatar.element.style.transform = `translate(${avatar.x}px, ${avatar.y}px)`;
                 
-                const leftArmWrapper = avatar.element.querySelector('.left-arm-wrapper');
-                const rightArmWrapper = avatar.element.querySelector('.right-arm-wrapper');
-                const leftLegWrapper = avatar.element.querySelector('.left-leg-wrapper');
-                const rightLegWrapper = avatar.element.querySelector('.right-leg-wrapper');
-
                 const isMovingLeft = avatar.speedX < 0;
+                
+                if (avatar.name === "Dick van der Woude"){
+                    const carWrapper = avatar.element.querySelector('.car-wrapper')
+                    carWrapper.style.transform = isMovingLeft ? 'scaleX(-1)' : 'scaleX(1)';
+                }
+                else {
+                    const leftArmWrapper = avatar.element.querySelector('.left-arm-wrapper');
+                    const rightArmWrapper = avatar.element.querySelector('.right-arm-wrapper');
+                    const leftLegWrapper = avatar.element.querySelector('.left-leg-wrapper');
+                    const rightLegWrapper = avatar.element.querySelector('.right-leg-wrapper');
 
-                leftLegWrapper.style.transform = isMovingLeft ? 'scaleX(-1)' : 'scaleX(1)';
-                rightLegWrapper.style.transform = isMovingLeft ? 'scaleX(-1)' : 'scaleX(1)';
+                    leftLegWrapper.style.transform = isMovingLeft ? 'scaleX(-1)' : 'scaleX(1)';
+                    rightLegWrapper.style.transform = isMovingLeft ? 'scaleX(-1)' : 'scaleX(1)';
 
-                leftArmWrapper.style.transform = isMovingLeft ? 'scaleX(-1)' : 'scaleX(1)';
-                rightArmWrapper.style.transform = isMovingLeft ? 'scaleX(-1)' : 'scaleX(1)';
+                    leftArmWrapper.style.transform = isMovingLeft ? 'scaleX(-1)' : 'scaleX(1)';
+                    rightArmWrapper.style.transform = isMovingLeft ? 'scaleX(-1)' : 'scaleX(1)';
 
-                leftArmWrapper.style.zIndex = isMovingLeft ? '-1' : '1';
-                rightArmWrapper.style.zIndex = isMovingLeft ? '1' : '-1';
+                    leftArmWrapper.style.zIndex = isMovingLeft ? '-1' : '1';
+                    rightArmWrapper.style.zIndex = isMovingLeft ? '1' : '-1';
+
+                }
             });
             requestAnimationFrame(animateAvatars);
         }
