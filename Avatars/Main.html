@@ -49,7 +49,7 @@
         const SCALE_FACTOR = 0.5;
 
         function randomDirection() {
-            return (Math.random() - 0.5) * 4;
+            return (Math.random() - 0.5) * 16;
         }
 
         function changeDirection(avatar) {
@@ -213,26 +213,13 @@
                         // Create new avatar
                         const avatar = document.createElement('div');
                         avatar.className = 'avatar';
-
-                        var avatarBody = `<img src="kenny/Player/Limbs/body_front.png" style="position:absolute; top:30px; left:15px; width:60px; z-index:1; ">`;
-                        if (data.name === "Tycho van den Heuvel") {                        
-                            avatarBody = `<img src="kenny/Player/Limbs/body_front_tycho.png" style="position:absolute; top:30px; left:15px; width:60px; z-index:1; ">`;
-                        }
-
-                        var avatarHeadExtra = ``;
-                        var nameTopPosition = '-70px';  // Default position
-                        if (data.name === "Martijn van Wensveen") {
-                            avatarHeadExtra = `<img src="kenny/Player/Limbs/chicken.png" style="position:absolute; top:-72px; left:20px; width:60px; z-index:3; ">`;
-                            nameTopPosition = '-90px';  // Higher position for chicken avatar
-                        }
                         
                         avatar.innerHTML = `
-                            <div class="name-label" style="position:absolute; top:${nameTopPosition}; width:100px; text-align:center; font-family: Arial; font-size: 14px; color: #333; white-space: nowrap; z-index:4;">
+                            <div class="name-label" style="position:absolute; top:-70px; width:100px; text-align:center; font-family: Arial; font-size: 14px; color: #333; white-space: nowrap;">
                                 ${data.name.split(' ')[0]}
                             </div>
-                            ${avatarHeadExtra}
-                            <img class="head" src="https://avataaars.io/?avatarStyle=Transparent&topType=${data.options.topType}&accessoriesType=${data.options.accessoriesType}&hatColor=${data.options.hatColor || 'Black'}&hairColor=${data.options.hairColor || 'BrownDark'}&facialHairType=${data.options.facialHairType || 'Blank'}&facialHairColor=${data.options.facialHairColor || 'Brown'}&clotheType=${data.options.clotheType || 'BlazerShirt'}&clotheColor=${data.options.clotheColor || 'Black'}&graphicType=${data.options.graphicType || 'Diamond'}&eyeType=${data.options.eyeType || 'Default'}&eyebrowType=${data.options.eyebrowType || 'Default'}&mouthType=${data.options.mouthType || 'Default'}&skinColor=${data.options.skinColor || 'Light'}" style="position:absolute; top:-42px; left:0px; width:100px; clip-path: inset(0% 0% 28% 0%); z-index:2;">
-                            ${avatarBody}
+                            <img class="head" src="https://avataaars.io/?avatarStyle=Transparent&topType=${data.options.topType}&accessoriesType=${data.options.accessoriesType}&hatColor=${data.options.hatColor || 'Black'}&hairColor=${data.options.hairColor || 'BrownDark'}&facialHairType=${data.options.facialHairType || 'Blank'}&facialHairColor=${data.options.facialHairColor || 'Brown'}&clotheType=${data.options.clotheType || 'BlazerShirt'}&clotheColor=${data.options.clotheColor || 'Black'}&graphicType=${data.options.graphicType || 'Diamond'}&eyeType=${data.options.eyeType || 'Default'}&eyebrowType=${data.options.eyebrowType || 'Default'}&mouthType=${data.options.mouthType || 'Default'}&skinColor=${data.options.skinColor || 'Light'}" style="position:absolute; top:-42px; left:0px; width:100px; clip-path: inset(0% 0% 28% 0%);">
+                            <img src="kenny/Player/Limbs/body_front.png" style="position:absolute; top:30px; left:15px; width:60px; z-index:1; ">
                             <div class="left-arm-wrapper" style="position:absolute; top:31px; left:10px; width:24px;">
                                 <img class="arm left-arm" src="kenny/Player/Limbs/arm.png" style="width:100%; transform-origin: top center;">
                             </div>
@@ -245,18 +232,6 @@
                             <div class="right-leg-wrapper" style="position:absolute; top:75px; left:54px; width:28px;">
                                 <img class="leg right-leg" src="kenny/Player/Limbs/leg.png" style="width:100%; transform-origin: top center;">
                             </div>`;
-
-                        if (data.name === "Dick van der Woude") {
-                            avatar.innerHTML = `
-                            <div class="name-label" style="position:absolute; top:${nameTopPosition}; width:100px; text-align:center; font-family: Arial; font-size: 14px; color: #333; white-space: nowrap; z-index:4;">
-                                ${data.name.split(' ')[0]}
-                            </div>
-                            <img class="head" src="https://avataaars.io/?avatarStyle=Transparent&topType=${data.options.topType}&accessoriesType=${data.options.accessoriesType}&hatColor=${data.options.hatColor || 'Black'}&hairColor=${data.options.hairColor || 'BrownDark'}&facialHairType=${data.options.facialHairType || 'Blank'}&facialHairColor=${data.options.facialHairColor || 'Brown'}&clotheType=${data.options.clotheType || 'BlazerShirt'}&clotheColor=${data.options.clotheColor || 'Black'}&graphicType=${data.options.graphicType || 'Diamond'}&eyeType=${data.options.eyeType || 'Default'}&eyebrowType=${data.options.eyebrowType || 'Default'}&mouthType=${data.options.mouthType || 'Default'}&skinColor=${data.options.skinColor || 'Light'}"  style="position:absolute; top:-42px; left:0px; width:100px; clip-path: inset(0% 0% 28% 0%); z-index:2;">
-                            <div class="car-wrapper" style="position:absolute; top:-18px; left:-100px; width:300px; z-index:1; ">
-                                <img class="car" src="kenny/Player/Limbs/cabrio.png" style="width:100%; transform-origin: top center; transform: scaleX(-1);">
-                            </div>
-                            `
-                        }
 
                         document.body.appendChild(avatar);
                         
@@ -320,28 +295,21 @@
                 
                 avatar.element.style.transform = `translate(${avatar.x}px, ${avatar.y}px)`;
                 
+                const leftArmWrapper = avatar.element.querySelector('.left-arm-wrapper');
+                const rightArmWrapper = avatar.element.querySelector('.right-arm-wrapper');
+                const leftLegWrapper = avatar.element.querySelector('.left-leg-wrapper');
+                const rightLegWrapper = avatar.element.querySelector('.right-leg-wrapper');
+
                 const isMovingLeft = avatar.speedX < 0;
-                
-                if (avatar.name === "Dick van der Woude"){
-                    const carWrapper = avatar.element.querySelector('.car-wrapper')
-                    carWrapper.style.transform = isMovingLeft ? 'scaleX(-1)' : 'scaleX(1)';
-                }
-                else {
-                    const leftArmWrapper = avatar.element.querySelector('.left-arm-wrapper');
-                    const rightArmWrapper = avatar.element.querySelector('.right-arm-wrapper');
-                    const leftLegWrapper = avatar.element.querySelector('.left-leg-wrapper');
-                    const rightLegWrapper = avatar.element.querySelector('.right-leg-wrapper');
 
-                    leftLegWrapper.style.transform = isMovingLeft ? 'scaleX(-1)' : 'scaleX(1)';
-                    rightLegWrapper.style.transform = isMovingLeft ? 'scaleX(-1)' : 'scaleX(1)';
+                leftLegWrapper.style.transform = isMovingLeft ? 'scaleX(-1)' : 'scaleX(1)';
+                rightLegWrapper.style.transform = isMovingLeft ? 'scaleX(-1)' : 'scaleX(1)';
 
-                    leftArmWrapper.style.transform = isMovingLeft ? 'scaleX(-1)' : 'scaleX(1)';
-                    rightArmWrapper.style.transform = isMovingLeft ? 'scaleX(-1)' : 'scaleX(1)';
+                leftArmWrapper.style.transform = isMovingLeft ? 'scaleX(-1)' : 'scaleX(1)';
+                rightArmWrapper.style.transform = isMovingLeft ? 'scaleX(-1)' : 'scaleX(1)';
 
-                    leftArmWrapper.style.zIndex = isMovingLeft ? '-1' : '1';
-                    rightArmWrapper.style.zIndex = isMovingLeft ? '1' : '-1';
-
-                }
+                leftArmWrapper.style.zIndex = isMovingLeft ? '-1' : '1';
+                rightArmWrapper.style.zIndex = isMovingLeft ? '1' : '-1';
             });
             requestAnimationFrame(animateAvatars);
         }
