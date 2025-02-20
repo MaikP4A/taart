@@ -52,6 +52,8 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            position: sticky;
+            top: 80px;  /* Adjust this value based on the height of your top controls */
         }
         
         @media (min-width: 768px) {
@@ -163,6 +165,11 @@
             display: flex;
             flex-direction: column;
             gap: 10px;
+            position: sticky;
+            top: 0;
+            background-color: white;
+            padding: 10px 0;
+            z-index: 100;
         }
 
         @media (min-width: 768px) {
@@ -402,7 +409,36 @@
             });
         });
 
-        // Load saved users
+        // Add this new function to load user configuration
+        async function loadUserConfiguration(userName) {
+            if (!userName) return;
+            
+            try {
+                const baseUrl = getApiBaseUrl();
+                const response = await fetch(`${baseUrl}/api/avatar/present`);
+                if (!response.ok) throw new Error('Failed to fetch avatar data');
+                
+                const avatarData = await response.json();
+                const userAvatar = avatarData.find(a => a.name === userName);
+                
+                if (userAvatar && userAvatar.options) {
+                    // Update all select elements with the user's saved configuration
+                    Object.keys(userAvatar.options).forEach(key => {
+                        const select = document.getElementById(key);
+                        if (select) {
+                            select.value = userAvatar.options[key];
+                        }
+                    });
+                    
+                    // Update the preview
+                    updatePreview();
+                }
+            } catch (error) {
+                console.error('Error loading user configuration:', error);
+            }
+        }
+
+        // Modify the existing code to add event listener for user selection
         async function loadUsers() {
             try {
                 const baseUrl = getApiBaseUrl();
@@ -411,6 +447,11 @@
                 
                 const users = await response.json();
                 const select = document.getElementById('userSelect');
+                
+                // Add event listener for user selection
+                select.addEventListener('change', (e) => {
+                    loadUserConfiguration(e.target.value);
+                });
                 
                 users.forEach(user => {
                     const option = document.createElement('option');
