@@ -130,20 +130,20 @@
                 // Get the base URL and convert http(s) to ws(s)
                 const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
                 const baseUrl = getApiBaseUrl();
-                const wsUrl = baseUrl ? 
-                    `${protocol}//${new URL(baseUrl).host}/ws` : 
+                const wsUrl = baseUrl ?
+                    `${protocol}//${new URL(baseUrl).host}/ws` :
                     `${protocol}//${window.location.host}/ws`;
-                
+
                 console.log('Connecting to WebSocket at:', wsUrl);
-                
+
                 ws = new WebSocket(wsUrl);
-                
+
                 ws.onopen = () => {
                     console.log('WebSocket connected successfully');
                     // Start periodic refresh when WebSocket connects
                     startPeriodicRefresh();
                 };
-                
+
                 ws.onmessage = (event) => {
                     console.log('WebSocket message received:', event.data);
                     if (event.data === 'avatar_updated') {
@@ -154,12 +154,12 @@
                         showSquaresLayout();
                     }
                 };
-                
+
                 ws.onclose = (event) => {
                     console.log('WebSocket disconnected. Code:', event.code, 'Reason:', event.reason);
                     setTimeout(connectWebSocket, 5000); // Reconnect after 5 seconds
                 };
-                
+
                 ws.onerror = (error) => {
                     console.error('WebSocket error:', error);
                 };
@@ -187,12 +187,12 @@
                 }
                 const avatarData = await response.json();
 
-                
+
                 // Keep track of existing avatars by name
                 const existingAvatarsByName = new Map(
                     avatars.map(avatar => [avatar.name, avatar])
                 );
-                
+
                 // Remove avatars that are no longer present
                 avatars.forEach((avatar, index) => {
                     if (!avatarData.find(data => data.name === avatar.name)) {
@@ -204,7 +204,7 @@
                 // Update or create avatars
                 avatarData.forEach(data => {
                     const existingAvatar = existingAvatarsByName.get(data.name);
-                    
+
                     if (existingAvatar) {
                         // Update existing avatar's appearance only
                         const head = existingAvatar.element.querySelector('.head');
@@ -213,13 +213,26 @@
                         // Create new avatar
                         const avatar = document.createElement('div');
                         avatar.className = 'avatar';
-                        
+
+                        var avatarBody = `<img src="kenny/Player/Limbs/body_front.png" style="position:absolute; top:30px; left:15px; width:60px; z-index:1; ">`;
+                        if (data.name === "Tycho Pro4all") {
+                            avatarBody = `<img src="kenny/Player/Limbs/body_front_tycho.png" style="position:absolute; top:30px; left:15px; width:60px; z-index:1; ">`;
+                        }
+
+                        var avatarHeadExtra = ``;
+                        var nameTopPosition = '-70px';  // Default position
+                        if (data.name === "Martijn Pro4all") {
+                            avatarHeadExtra = `<img src="kenny/Player/Limbs/chicken.png" style="position:absolute; top:-72px; left:20px; width:60px; z-index:3; ">`;
+                            nameTopPosition = '-90px';  // Higher position for chicken avatar
+                        }
+
                         avatar.innerHTML = `
-                            <div class="name-label" style="position:absolute; top:-70px; width:100px; text-align:center; font-family: Arial; font-size: 14px; color: #333; white-space: nowrap;">
+                            <div class="name-label" style="position:absolute; top:${nameTopPosition}; width:100px; text-align:center; font-family: Arial; font-size: 14px; color: #333; white-space: nowrap; z-index:4;">
                                 ${data.name.split(' ')[0]}
                             </div>
-                            <img class="head" src="https://avataaars.io/?avatarStyle=Transparent&topType=${data.options.topType}&accessoriesType=${data.options.accessoriesType}&hatColor=${data.options.hatColor || 'Black'}&hairColor=${data.options.hairColor || 'BrownDark'}&facialHairType=${data.options.facialHairType || 'Blank'}&facialHairColor=${data.options.facialHairColor || 'Brown'}&clotheType=${data.options.clotheType || 'BlazerShirt'}&clotheColor=${data.options.clotheColor || 'Black'}&graphicType=${data.options.graphicType || 'Diamond'}&eyeType=${data.options.eyeType || 'Default'}&eyebrowType=${data.options.eyebrowType || 'Default'}&mouthType=${data.options.mouthType || 'Default'}&skinColor=${data.options.skinColor || 'Light'}" style="position:absolute; top:-42px; left:0px; width:100px; clip-path: inset(0% 0% 28% 0%);">
-                            <img src="kenny/Player/Limbs/body_front.png" style="position:absolute; top:30px; left:15px; width:60px; z-index:1; ">
+                            ${avatarHeadExtra}
+                            <img class="head" src="https://avataaars.io/?avatarStyle=Transparent&topType=${data.options.topType}&accessoriesType=${data.options.accessoriesType}&hatColor=${data.options.hatColor || 'Black'}&hairColor=${data.options.hairColor || 'BrownDark'}&facialHairType=${data.options.facialHairType || 'Blank'}&facialHairColor=${data.options.facialHairColor || 'Brown'}&clotheType=${data.options.clotheType || 'BlazerShirt'}&clotheColor=${data.options.clotheColor || 'Black'}&graphicType=${data.options.graphicType || 'Diamond'}&eyeType=${data.options.eyeType || 'Default'}&eyebrowType=${data.options.eyebrowType || 'Default'}&mouthType=${data.options.mouthType || 'Default'}&skinColor=${data.options.skinColor || 'Light'}" style="position:absolute; top:-42px; left:0px; width:100px; clip-path: inset(0% 0% 28% 0%); z-index:2;">
+                            ${avatarBody}
                             <div class="left-arm-wrapper" style="position:absolute; top:31px; left:10px; width:24px;">
                                 <img class="arm left-arm" src="kenny/Player/Limbs/arm.png" style="width:100%; transform-origin: top center;">
                             </div>
@@ -233,8 +246,20 @@
                                 <img class="leg right-leg" src="kenny/Player/Limbs/leg.png" style="width:100%; transform-origin: top center;">
                             </div>`;
 
+                        if (data.name === "Dick Pro4all") {
+                            avatar.innerHTML = `
+                            <div class="name-label" style="position:absolute; top:${nameTopPosition}; width:100px; text-align:center; font-family: Arial; font-size: 14px; color: #333; white-space: nowrap; z-index:4;">
+                                ${data.name.split(' ')[0]}
+                            </div>
+                            <img class="head" src="https://avataaars.io/?avatarStyle=Transparent&topType=${data.options.topType}&accessoriesType=${data.options.accessoriesType}&hatColor=${data.options.hatColor || 'Black'}&hairColor=${data.options.hairColor || 'BrownDark'}&facialHairType=${data.options.facialHairType || 'Blank'}&facialHairColor=${data.options.facialHairColor || 'Brown'}&clotheType=${data.options.clotheType || 'BlazerShirt'}&clotheColor=${data.options.clotheColor || 'Black'}&graphicType=${data.options.graphicType || 'Diamond'}&eyeType=${data.options.eyeType || 'Default'}&eyebrowType=${data.options.eyebrowType || 'Default'}&mouthType=${data.options.mouthType || 'Default'}&skinColor=${data.options.skinColor || 'Light'}"  style="position:absolute; top:-42px; left:0px; width:100px; clip-path: inset(0% 0% 28% 0%); z-index:2;">
+                            <div class="car-wrapper" style="position:absolute; top:-18px; left:-100px; width:300px; z-index:1; ">
+                                <img class="car" src="kenny/Player/Limbs/cabrio.png" style="width:100%; transform-origin: top center; transform: scaleX(-1);">
+                            </div>
+                            `
+                        }
+
                         document.body.appendChild(avatar);
-                        
+
                         const avatarObj = {
                             element: avatar,
                             x: Math.random() * (window.innerWidth / SCALE_FACTOR - AVATAR_SIZE),
@@ -250,7 +275,7 @@
                             },
                             name: data.name
                         };
-                        
+
                         avatars.push(avatarObj);
                         setInterval(() => changeDirection(avatarObj), Math.random() * 5000 + 2000);
                     }
@@ -273,9 +298,9 @@
                 if (avatar.wandering) {
                     avatar.x += avatar.speedX;
                     avatar.y += avatar.speedY;
-                    
+
                     const { x, y, width, height } = avatar.wanderArea;
-                    
+
                     if (avatar.x < x) {
                         avatar.x = x;
                         avatar.speedX = Math.abs(avatar.speedX);
@@ -283,7 +308,7 @@
                         avatar.x = x + width;
                         avatar.speedX = -Math.abs(avatar.speedX);
                     }
-                    
+
                     if (avatar.y < y) {
                         avatar.y = y;
                         avatar.speedY = Math.abs(avatar.speedY);
@@ -292,24 +317,32 @@
                         avatar.speedY = -Math.abs(avatar.speedY);
                     }
                 }
-                
+
                 avatar.element.style.transform = `translate(${avatar.x}px, ${avatar.y}px)`;
-                
-                const leftArmWrapper = avatar.element.querySelector('.left-arm-wrapper');
-                const rightArmWrapper = avatar.element.querySelector('.right-arm-wrapper');
-                const leftLegWrapper = avatar.element.querySelector('.left-leg-wrapper');
-                const rightLegWrapper = avatar.element.querySelector('.right-leg-wrapper');
 
                 const isMovingLeft = avatar.speedX < 0;
 
-                leftLegWrapper.style.transform = isMovingLeft ? 'scaleX(-1)' : 'scaleX(1)';
-                rightLegWrapper.style.transform = isMovingLeft ? 'scaleX(-1)' : 'scaleX(1)';
+                console.log(avatar.name);
+                if (avatar.name === "Dick Pro4all"){
+                    const carWrapper = avatar.element.querySelector('.car-wrapper')
+                    carWrapper.style.transform = isMovingLeft ? 'scaleX(-1)' : 'scaleX(1)';
+                }
+                else {
+                    const leftArmWrapper = avatar.element.querySelector('.left-arm-wrapper');
+                    const rightArmWrapper = avatar.element.querySelector('.right-arm-wrapper');
+                    const leftLegWrapper = avatar.element.querySelector('.left-leg-wrapper');
+                    const rightLegWrapper = avatar.element.querySelector('.right-leg-wrapper');
 
-                leftArmWrapper.style.transform = isMovingLeft ? 'scaleX(-1)' : 'scaleX(1)';
-                rightArmWrapper.style.transform = isMovingLeft ? 'scaleX(-1)' : 'scaleX(1)';
+                    leftLegWrapper.style.transform = isMovingLeft ? 'scaleX(-1)' : 'scaleX(1)';
+                    rightLegWrapper.style.transform = isMovingLeft ? 'scaleX(-1)' : 'scaleX(1)';
 
-                leftArmWrapper.style.zIndex = isMovingLeft ? '-1' : '1';
-                rightArmWrapper.style.zIndex = isMovingLeft ? '1' : '-1';
+                    leftArmWrapper.style.transform = isMovingLeft ? 'scaleX(-1)' : 'scaleX(1)';
+                    rightArmWrapper.style.transform = isMovingLeft ? 'scaleX(-1)' : 'scaleX(1)';
+
+                    leftArmWrapper.style.zIndex = isMovingLeft ? '-1' : '1';
+                    rightArmWrapper.style.zIndex = isMovingLeft ? '1' : '-1';
+
+                }
             });
             requestAnimationFrame(animateAvatars);
         }
@@ -326,11 +359,11 @@
                 const originalEyeType = params.get('eyeType');
 
                 params.set('eyeType', 'Surprised');
-                
+
                 // Construct new URL while preserving other parameters
                 const newUrl = `https://avataaars.io/?${params.toString()}`;
                 head.src = newUrl;
-                
+
                 // Reset back to original after 2 seconds
                 setTimeout(() => {
                     params.set('eyeType', originalEyeType);
@@ -345,11 +378,11 @@
             const editorUrl = window.location.href.replace('Main.html', 'AvatarEditor.html');
             qr.addData(editorUrl);
             qr.make();
-            
+
             const qrHtml = qr.createImgTag(4);
             const qrContainer = document.getElementById('qrcode');
             qrContainer.innerHTML = qrHtml;
-            
+
             qrContainer.style.backgroundColor = 'rgba(255, 255, 255, 0.5)';
             qrContainer.style.padding = '10px';
             qrContainer.style.borderRadius = '8px';
@@ -361,11 +394,11 @@
             const urlWithParams = baseUrl ? `${voteButtonUrl}?apiUrl=${encodeURIComponent(baseUrl)}` : voteButtonUrl;
             voteQr.addData(urlWithParams);
             voteQr.make();
-            
+
             const voteQrHtml = voteQr.createImgTag(4);
             const voteQrContainer = document.getElementById('vote-qrcode');
             voteQrContainer.innerHTML = voteQrHtml;
-            
+
             voteQrContainer.style.backgroundColor = 'rgba(255, 255, 255, 0.5)';
             voteQrContainer.style.padding = '10px';
             voteQrContainer.style.borderRadius = '8px';
