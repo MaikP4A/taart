@@ -19,9 +19,31 @@
             padding: 0;
             overflow: hidden;
         }
+        
+        /* Add styles for the logo container */
+        .logo-container {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: -1; /* Place behind avatars */
+            opacity: 0.5; /* Semi-transparent */
+            width: 70%; /* Adjust size as needed */
+            /* max-width: 400px; */
+        }
+        
+        .logo-container img {
+            width: 100%;
+            height: auto;
+        }
     </style>
 </head>
 <body>
+    <!-- Add the Pro4all logo container -->
+    <div class="logo-container">
+        <img src="Pro4all_logo_grijspaars.svg" alt="Pro4all Logo">
+    </div>
+
     <div class="chart-container" id="chartContainer">
         <svg id="voteChart" width="100%" height="100%"></svg>
     </div>
