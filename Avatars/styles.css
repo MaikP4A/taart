@@ -10,32 +10,6 @@
     transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-button {
-    position: fixed;
-    top: 20px;
-    padding: 10px 20px;
-    font-size: 16px;
-    cursor: pointer;
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    z-index: 1000;
-    margin-right: 10px;
-}
-
-button:nth-child(1) {
-    left: calc(50% - 200px);
-}
-
-button:nth-child(2) {
-    left: calc(50% - 60px);
-}
-
-button:nth-child(3) {
-    left: calc(50% + 80px);
-}
-
 .avatar {
     position: absolute;
     width: 100px;
@@ -45,27 +19,32 @@ button:nth-child(3) {
 
 .arm, .leg {
     position: absolute;
+    will-change: transform;
+}
+
+/* These animations will only apply if not explicitly disabled by JavaScript */
+.avatar:not(.disable-animations) .arm, 
+.avatar:not(.disable-animations) .leg {
     animation-duration: 0.5s;
     animation-timing-function: ease-in-out;
     animation-iteration-count: infinite;
     animation-direction: alternate;
     transform-origin: top center;
-    will-change: transform;
 }
 
-.left-arm {
+.avatar:not(.disable-animations) .left-arm {
     animation-name: rightLimbSwing;
 }
 
-.right-arm {
+.avatar:not(.disable-animations) .right-arm {
     animation-name: leftLimbSwing;
 }
 
-.left-leg {
+.avatar:not(.disable-animations) .left-leg {
     animation-name: leftLimbSwing;
 }
 
-.right-leg {
+.avatar:not(.disable-animations) .right-leg {
     animation-name: rightLimbSwing;
 }
 
