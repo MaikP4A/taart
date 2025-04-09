@@ -749,7 +749,7 @@ function renderAvatarHTML(avatar, data) {
                 ${data.name.split(' ')[0]}
             </div>
             ${avatarHeadExtra}
-            <img class="head" src="${buildAvatarUrl(data.options)}" style="position:absolute; top:-42px; left:0px; width:100px; clip-path: inset(0% 0% 28% 0%); z-index:2;">
+            <img class="head" src="${buildAvatarUrl(data.options)}" style="position:absolute; top:-42px; left:0px; width:100px; clip-path: inset(0% 0% 28% 0%); z-index:0;">
             ${avatarBody}
             <div class="left-arm-wrapper" style="position:absolute; top:31px; left:10px; width:24px;">
                 <img class="arm left-arm" src="kenny/Player/Limbs/arm.png" style="width:100%; transform-origin: top center;">
