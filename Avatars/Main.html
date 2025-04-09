@@ -140,6 +140,10 @@
                 AvatarManager.showLunchChoices();
             }, 300000);
         }
+        // Add delay to show lunch choices
+        setTimeout(() => {
+            AvatarManager.showLunchChoices();
+        }, 1000);
 
         // Call the function when page loads
         connectWebSocket();

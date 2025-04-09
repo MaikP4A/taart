@@ -832,7 +832,7 @@ function createSpeechBubble(avatar) {
     bubble.style.padding = '8px 15px';
     bubble.style.borderRadius = '20px';
     bubble.style.boxShadow = '0 2px 5px rgba(0,0,0,0.2)';
-    bubble.style.maxWidth = '200px';
+    bubble.style.width = '100px';
     bubble.style.wordWrap = 'break-word';
     bubble.style.textAlign = 'center';
     bubble.style.fontFamily = 'Arial, sans-serif';
