@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Prostream Users Online Avatars</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://alcdn.msauth.net/browser/2.0.0/js/msal-browser.min.js"></script>
+    <style>
+        body {
+            transform: scale(0.5);
+            transform-origin: top left;
+            background-color: white;
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: center;
+            width: 200vw;  /* Double the viewport width to account for scaling */
+            height: 200vh; /* Double the viewport height to account for scaling */
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+        
+        /* Add styles for the logo container */
+        .logo-container {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: -1; /* Place behind avatars */
+            opacity: 1.0; /* Semi-transparent */
+            width: 70%; /* Adjust size as needed */
+            /* max-width: 400px; */
+        }
+        
+        .logo-container img {
+            width: 100%;
+            height: auto;
+        }
+        
+        /* Users online counter */
+        .users-online-counter {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 15px 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            font-family: Arial, sans-serif;
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            z-index: 1000;
+            border: 2px solid #523BE1;
+        }
+        
+        .users-online-counter .label {
+            display: block;
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        
+        .users-online-counter .count {
+            display: block;
+            font-size: 24px;
+            color: #523BE1;
+        }
+    </style>
+</head>
+<body>
+    <!-- Add the Pro4all logo container -->
+    <div class="logo-container">
+        <img src="Pro4all_logo_grijspaars.svg" alt="Pro4all Logo">
+    </div>
+
+    <!-- Users online counter -->
+    <div class="users-online-counter">
+        <span class="label">Prostream Users Online</span>
+        <span class="count" id="userCount">0</span>
+    </div>
+
+    <div class="chart-container" id="chartContainer">
+        <svg id="voteChart" width="100%" height="100%"></svg>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="squaresLayout.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+
+    <!-- Include our new avatars.js file -->
+    <script src="avatars.js"></script>
+    
+    <script>
+        let ws;
+        let squaresVisible = false;
+
+        // Function to assign random animations to all avatars
+        function randomizeAnimations() {
+            const styles = Object.values(AvatarManager.AnimationStyle);
+            
+            // For each avatar, randomly assign one of the animation styles
+            AvatarManager.getAvatars().forEach(avatar => {
+                const randomStyle = styles[Math.floor(Math.random() * styles.length)];
+                AvatarManager.setAnimationStyle(randomStyle, avatar.name);
+            });
+        }
+
+        function connectWebSocket() {
+            try {
+                // Get the base URL and convert http(s) to ws(s)
+                const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+                const baseUrl = AvatarManager.getApiBaseUrl();
+                console.log(`${protocol}//${new URL(baseUrl).host}/usersonline/usersonline`);
+                const wsUrl = baseUrl ?
+                    `${protocol}//${new URL(baseUrl).host}/usersonline/usersonline` :
+                    `${protocol}//${window.location.host}/usersonline/usersonline`;
+
+                console.log('Connecting to UsersOnline WebSocket at:', wsUrl);
+
+                ws = new WebSocket(wsUrl);
+
+                ws.onopen = () => {
+                    console.log('UsersOnline WebSocket connected successfully');
+                    // Start periodic refresh when WebSocket connects
+                    startPeriodicRefresh();
+                };
+
+                ws.onmessage = (event) => {
+                    console.log('UsersOnline WebSocket message received:', event.data);
+                    try {
+                        // Parse the JSON message
+                        const userData = JSON.parse(event.data);
+                        
+                        // Check for the onlineUsers field from the screenshot format
+                        if (userData.onlineUsers !== undefined) {
+                            console.log('Users online update received:', userData.onlineUsers);
+                            updateUsersOnline(userData.onlineUsers);
+                        }
+                        // Also support the old format for backward compatibility
+                        else if (userData.type === 'users_online' && userData.count !== undefined) {
+                            console.log('Users online update received (old format):', userData.count);
+                            updateUsersOnline(userData.count);
+                        }
+                        else {
+                            console.log('Unknown message format:', userData);
+                        }
+                    } catch (error) {
+                        // If not JSON, try to parse as plain number
+                        const userCount = parseInt(event.data);
+                        if (!isNaN(userCount)) {
+                            console.log('Users online count received:', userCount);
+                            updateUsersOnline(userCount);
+                        } else {
+                            console.log('Non-JSON message received:', event.data);
+                        }
+                    }
+                };
+
+                ws.onclose = (event) => {
+                    console.log('UsersOnline WebSocket disconnected. Code:', event.code, 'Reason:', event.reason);
+                    setTimeout(connectWebSocket, 5000); // Reconnect after 5 seconds
+                };
+
+                ws.onerror = (error) => {
+                    console.error('UsersOnline WebSocket error:', error);
+                };
+            } catch (error) {
+                console.error('Error setting up UsersOnline WebSocket:', error);
+                setTimeout(connectWebSocket, 5000);
+            }
+        }
+
+        // Function to update users online from WebSocket data
+        async function updateUsersOnline(userCount) {
+            try {
+                // Update the counter display
+                const userCountElement = document.getElementById('userCount');
+                if (userCountElement) {
+                    userCountElement.textContent = userCount;
+                }
+                
+                // Calculate how many avatars to show (divide by 10, minimum 1)
+                const targetAvatarCount = Math.max(1, Math.floor(userCount / 10));
+                const currentAvatarCount = AvatarManager.getAvatars().length;
+                
+                console.log(`Users online: ${userCount}, Target avatars: ${targetAvatarCount}, Current avatars: ${currentAvatarCount}`);
+
+                if (targetAvatarCount > currentAvatarCount) {
+                    // Add new avatars
+                    const avatarsToAdd = targetAvatarCount - currentAvatarCount;
+                    console.log(`Adding ${avatarsToAdd} new avatars`);
+                    
+                    for (let i = 0; i < avatarsToAdd; i++) {
+                        createRandomAvatar();
+                    }
+                } else if (targetAvatarCount < currentAvatarCount) {
+                    // Remove excess avatars (remove from the end)
+                    const avatarsToRemove = currentAvatarCount - targetAvatarCount;
+                    console.log(`Removing ${avatarsToRemove} avatars`);
+                    
+                    for (let i = 0; i < avatarsToRemove; i++) {
+                        const avatarToRemove = AvatarManager.getAvatars().pop();
+                        if (avatarToRemove && avatarToRemove.element) {
+                            avatarToRemove.element.remove();
+                        }
+                    }
+                }
+
+                console.log(`Updated to show ${targetAvatarCount} avatars for ${userCount} users online`);
+            } catch (error) {
+                console.error('Error updating users online:', error);
+            }
+        }
+
+        // Function to create a single random avatar
+        function createRandomAvatar() {
+            // Generate random name for the avatar
+            const randomNames = [
+                ''
+            //    'Alex', 'Sam', 'Jordan', 'Taylor', 'Casey', 'Riley', 'Quinn', 'Avery', 'Morgan', 'Parker',
+            //    'Drew', 'Blake', 'Cameron', 'Dakota', 'Emery', 'Finley', 'Harper', 'Indigo', 'Jamie', 'Kendall',
+            //    'Logan', 'Mason', 'Noah', 'Oliver', 'Peyton', 'Quincy', 'River', 'Sage', 'Tatum', 'Unity',
+            //    'Val', 'Winter', 'Xander', 'Yuki', 'Zion', 'Aria', 'Bella', 'Chloe', 'Diana', 'Eva',
+            //    'Fiona', 'Grace', 'Hannah', 'Iris', 'Jade', 'Kate', 'Luna', 'Maya', 'Nova', 'Opal'
+            ];
+            
+            const randomName = randomNames[Math.floor(Math.random() * randomNames.length)];
+            
+            // Create avatar data structure with random options
+            const avatarData = {
+                name: randomName,
+                options: generateRandomAvatarOptions()
+            };
+
+            // Create new avatar
+            const avatar = document.createElement('div');
+            avatar.className = 'avatar';
+
+            renderAvatarHTML(avatar, avatarData);
+            document.body.appendChild(avatar);
+
+            // Set walking as the default animation style
+            const initialStyle = AvatarManager.AnimationStyle.WALKING;
+
+            const avatarObj = {
+                element: avatar,
+                x: Math.random() * (window.innerWidth / SCALE_FACTOR - AVATAR_SIZE),
+                y: Math.random() * (window.innerHeight / SCALE_FACTOR - AVATAR_SIZE),
+                speedX: randomDirection(),
+                speedY: randomDirection(),
+                wandering: true,
+                wanderArea: {
+                    x: 0,
+                    y: 0,
+                    width: window.innerWidth / SCALE_FACTOR - AVATAR_SIZE,
+                    height: window.innerHeight / SCALE_FACTOR - AVATAR_SIZE
+                },
+                name: avatarData.name,
+                animationStyle: initialStyle,
+                jumpState: null
+            };
+
+            avatars.push(avatarObj);
+            setInterval(() => changeDirection(avatarObj), Math.random() * 5000 + 2000);
+        }
+
+        // Function to generate random avatar options (fallback)
+        function generateRandomAvatarOptions() {
+            return {
+                topType: getRandomOption('topType'),
+                accessoriesType: getRandomOption('accessoriesType'),
+                hatColor: getRandomOption('hatColor'),
+                hairColor: getRandomOption('hairColor'),
+                facialHairType: getRandomOption('facialHairType'),
+                facialHairColor: getRandomOption('facialHairColor'),
+                clotheType: getRandomOption('clotheType'),
+                clotheColor: getRandomOption('clotheColor'),
+                graphicType: getRandomOption('graphicType'),
+                eyeType: getRandomOption('eyeType'),
+                eyebrowType: getRandomOption('eyebrowType'),
+                mouthType: getRandomOption('mouthType'),
+                skinColor: getRandomOption('skinColor')
+            };
+        }
+
+        // Add new function for periodic refresh
+        function startPeriodicRefresh() {
+            // Send ping to keep connection alive every 30 seconds
+            setInterval(() => {
+                if (ws && ws.readyState === WebSocket.OPEN) {
+                    console.log('Sending ping to keep connection alive');
+                    ws.send('ping');
+                }
+            }, 30000);
+        }
+
+        // Call the function when page loads
+        connectWebSocket();
+        AvatarManager.startAnimation();
+    </script>
+</body>
+</html>
