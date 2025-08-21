@@ -44,6 +44,11 @@
         <img src="Pro4all_logo_grijspaars.svg" alt="Pro4all Logo">
     </div>
 
+    <!-- Add the traveling nyan cat -->
+    <div class="nyan-cat-container">
+        <img src="nyan-cat.gif" alt="Nyan Cat" class="nyan-cat">
+    </div>
+
     <div class="chart-container" id="chartContainer">
         <svg id="voteChart" width="100%" height="100%"></svg>
     </div>
@@ -78,6 +83,109 @@
                 const randomStyle = styles[Math.floor(Math.random() * styles.length)];
                 AvatarManager.setAnimationStyle(randomStyle, avatar.name);
             });
+        }
+
+        // Nyan Cat random positioning and animation
+        function setupNyanCat() {
+            const nyanContainer = document.querySelector('.nyan-cat-container');
+            const nyanCat = document.querySelector('.nyan-cat');
+            
+            function startNewAnimation() {
+                // Random starting side (0: top, 1: right, 2: bottom, 3: left)
+                const side = Math.floor(Math.random() * 4);
+                let startX, startY, endX, endY;
+                let isFlipped = false;
+                let rotation = 0;
+                
+                switch(side) {
+                    case 0: // Top - travel downward
+                        startX = Math.random() * window.innerWidth;
+                        startY = -200;
+                        endX = startX + (Math.random() - 0.5) * window.innerWidth;
+                        endY = window.innerHeight + 200;
+                        // Flip if traveling left
+                        isFlipped = (endX < startX);
+                        // Calculate rotation based on direction
+                        rotation = Math.atan2(endY - startY, endX - startX) * (180 / Math.PI);
+                        break;
+                    case 1: // Right - travel leftward
+                        startX = window.innerWidth + 200;
+                        startY = Math.random() * window.innerHeight;
+                        endX = -200;
+                        endY = startY + (Math.random() - 0.5) * window.innerHeight;
+                        isFlipped = true; // Always flipped when traveling left
+                        rotation = Math.atan2(endY - startY, endX - startX) * (180 / Math.PI);
+                        break;
+                    case 2: // Bottom - travel upward
+                        startX = Math.random() * window.innerWidth;
+                        startY = window.innerHeight + 200;
+                        endX = startX + (Math.random() - 0.5) * window.innerWidth;
+                        endY = -200;
+                        // Flip if traveling left
+                        isFlipped = (endX < startX);
+                        rotation = Math.atan2(endY - startY, endX - startX) * (180 / Math.PI);
+                        break;
+                    case 3: // Left - travel rightward
+                        startX = -200;
+                        startY = Math.random() * window.innerHeight;
+                        endX = window.innerWidth + 200;
+                        endY = startY + (Math.random() - 0.5) * window.innerHeight;
+                        isFlipped = false; // Never flipped when traveling right
+                        rotation = Math.atan2(endY - startY, endX - startX) * (180 / Math.PI);
+                        break;
+                }
+                
+                // Set starting position
+                nyanContainer.style.left = startX + 'px';
+                nyanContainer.style.top = startY + 'px';
+                
+                // Apply horizontal flip and rotation
+                if (isFlipped) {
+                    nyanCat.style.transform = `scaleX(-1) rotate(${rotation}deg)`;
+                } else {
+                    nyanCat.style.transform = `rotate(${rotation}deg)`;
+                }
+                
+                // Calculate distance for animation duration
+                const distance = Math.sqrt(Math.pow(endX - startX, 2) + Math.pow(endY - startY, 2));
+                // Fixed speed: 2000 pixels = 10 seconds, so 200 pixels per second
+                const duration = distance / 200;
+                
+                // Create custom keyframes for this specific path
+                const keyframes = `
+                    @keyframes travelRandom${Date.now()} {
+                        0% {
+                            transform: translateX(0) translateY(0) ${isFlipped ? 'scaleX(-1)' : ''} rotate(${rotation}deg);
+                        }
+                        100% {
+                            transform: translateX(${endX - startX}px) translateY(${endY - startY}px) ${isFlipped ? 'scaleX(-1)' : ''} rotate(${rotation}deg);
+                        }
+                    }
+                `;
+                
+                // Remove old style if exists
+                const oldStyle = document.getElementById('nyan-cat-style');
+                if (oldStyle) oldStyle.remove();
+                
+                // Add new style
+                const style = document.createElement('style');
+                style.id = 'nyan-cat-style';
+                style.textContent = keyframes;
+                document.head.appendChild(style);
+                
+                // Apply animation
+                nyanCat.style.animation = `none`;
+                nyanCat.offsetHeight; // Trigger reflow
+                nyanCat.style.animation = `travelRandom${Date.now()} ${duration}s linear forwards`;
+                
+                // Restart animation when it completes
+                setTimeout(() => {
+                    startNewAnimation();
+                }, duration * 1000);
+            }
+            
+            // Start the first animation
+            startNewAnimation();
         }
 
         function connectWebSocket() {
@@ -149,6 +257,7 @@
         connectWebSocket();
         AvatarManager.loadAvatars();
         AvatarManager.startAnimation();
+        setupNyanCat(); // Initialize Nyan Cat animation
     </script>
 </body>
 </html>

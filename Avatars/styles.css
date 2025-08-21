@@ -73,3 +73,15 @@
     stroke-width: 2;
     transition: transform 0.3s ease;
 } 
+
+/* Nyan Cat traveling animation */
+.nyan-cat-container {
+    position: fixed;
+    z-index: 1000;
+    pointer-events: none; /* Don't interfere with other elements */
+}
+
+.nyan-cat {
+    width: 1200px; /* 8x larger (150px * 8 = 1200px) */
+    height: auto;
+} 
